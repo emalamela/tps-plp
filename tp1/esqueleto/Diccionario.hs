@@ -1,4 +1,4 @@
-module Diccionario (Diccionario, vacio, definir, definirVarias, obtener, claves) where
+module Diccionario (Diccionario, vacio, definir, definirVarias, obtener, claves, mapping) where
 
 import Data.Maybe
 import Data.List
@@ -73,25 +73,41 @@ definirVarias = (flip.foldr.uncurry) definir
 
 {- Funciones a implementar. -}
 
-vacio::Comp clave->Diccionario clave valor
-vacio compC = Dicc compC Nothing
+{- Ejercicio 6 -}
 
+--Devuelve un árbol vacío.
+vacio::Comp clave->Diccionario clave valor
+vacio cmp = Dicc cmp Nothing
+
+{- Ejercicio 7 -}
+
+--Inserta en un diccionario una (Hoja (c,v))
 definir::clave->valor->Diccionario clave valor->Diccionario clave valor
-definir c v dicc = if isJust (estructura dicc) then Dicc (cmp dicc) (Just (insertar c v (cmp dicc) (fromJust (estructura dicc))) )
-                    else Dicc (cmp dicc) (Just (Hoja (c,v)) )
+definir c v (Dicc cmp estructura) | isNothing estructura = Dicc cmp (Just (Hoja (c,v)))
+                                  | otherwise = Dicc cmp (Just (insertar c v cmp (fromJust estructura)))
+
+{- Ejercicio 8 -}
 
 obtener::Eq clave=>clave->Diccionario clave valor->Maybe valor
-obtener clave dicc = if isNothing (estructura dicc) then Nothing 
-                else buscarClave clave (cmp dicc) (fromJust (estructura dicc))
+obtener clave (Dicc cmp estructura) | isNothing estructura = Nothing 
+                                    | otherwise = buscarClave clave cmp (fromJust estructura)
 
 buscarClave::Eq clave=>clave->Comp clave ->Estr clave valor -> Maybe valor
-buscarClave clave cmp estr = foldA23 (\claveValor -> if (fst claveValor) == clave then Just (snd claveValor) else Nothing) 
-                        (\i r1 r2 -> if cmp clave i then r1 else r2) 
+buscarClave clave cmp estr = foldA23 (\(claveHoja, valorHoja) -> if claveHoja == clave then Just valorHoja else Nothing) 
+                        (\i r1 r2 -> if cmp clave i then r1 else r2)
                         (\i1 i2 r1 r2 r3 -> if cmp clave i1 then r1 else 
                             (if cmp clave i2 then r2 else r3)) estr
 
+{- Ejercicio 9 -}
+
 claves::Diccionario clave valor->[clave]
-claves dicc = map fst (hojas (fromJust (estructura dicc)))
+claves dicc = map fst (mapping dicc)
+
+{- Auxiliares -}
+
+mapping::Diccionario clave valor->[(clave,valor)]
+mapping (Dicc _ estructura) | isNothing estructura = []
+                            | otherwise = hojas (fromJust (estructura))
 
 {- Diccionarios de prueba: -}
 
@@ -103,4 +119,3 @@ dicc2 = definirVarias [("inicio","casa"),("auto","flores"),("calle","auto"),("ca
 
 dicc3::Diccionario Int String
 dicc3 = definirVarias [(0,"Hola"),(-10,"Chau"),(15,"Felicidades"),(2,"etc."),(9,"a")] (vacio (\x y->x `mod` 5 < y `mod` 5))
-

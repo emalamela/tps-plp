@@ -37,6 +37,9 @@ dicc4 = definir 10 "Messi" diccVacioMenor
 dicc5::Diccionario Int String
 dicc5 = definir 5 "Gago" dicc4
 
+dicc6::Diccionario String String
+dicc6 = definirVarias [("Quién","es"),("es","el"),("el","mejor?"),("mejor?","Respuesta"),("Respuesta","Messi")] (vacio (>))
+
 {- Funciones Auxiliares -}
 
 negarInternos::Num b => Arbol23 a b -> Arbol23 a b
@@ -96,9 +99,9 @@ testsEj7 = test [
   ]
 
 testsEj8 = test [
-  "Test Ej 8 - obtener 10 de dicc4 devuelve Just \"Messi\"" ~: "Messi" ~=? fromJust (obtener 10 dicc4),
-  "Test Ej 8 - obtener 20 de dicc4 devuelve Nothing" ~: True ~=? isNothing (obtener 20 dicc4),
-  "Test Ej 8 - obtener (-10) de dicc1 devuelve Just \"Chau\"" ~: "Chau" ~=? fromJust (obtener (-10) dicc1) 
+  "Test Ej 8 - obtener 10 de dicc4 devuelve Just \"Messi\"" ~: Just "Messi" ~=? obtener 10 dicc4,
+  "Test Ej 8 - obtener 20 de dicc4 devuelve Nothing" ~: Nothing ~=? obtener 20 dicc4,
+  "Test Ej 8 - obtener (-10) de dicc1 devuelve Just \"Chau\"" ~: Just "Chau" ~=? obtener (-10) dicc1
   ]
   
 testsEj9 = test [
@@ -108,5 +111,7 @@ testsEj9 = test [
   ]
   
 testsEj10 = test [
-  Just "alfajor" ~=? búsquedaDelTesoro "inicio" ((=='a').head) dicc2
+  "Test Ej 10 - busquedaDelTesoro \"inicio\" ((=='a').head) dicc2 devuelve Just \"alfajor\"" ~: Just "alfajor" ~=? búsquedaDelTesoro "inicio" ((=='a').head) dicc2,
+  "Test Ej 10 - busquedaDelTesoro \"Quién\" (==\"Messi\") dicc6 devuelve Just \"Messi\"" ~: Just "Messi" ~=? búsquedaDelTesoro "Quién" (== "Messi") dicc6,
+  "Test Ej 10 - busquedaDelTesoro \"Quién\" (==\"Cristiano\") dicc6 devuelve Nothing" ~: Nothing ~=? búsquedaDelTesoro "Quién" (== "Cristiano") dicc6
   ]

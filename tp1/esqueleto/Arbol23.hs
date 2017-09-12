@@ -13,7 +13,7 @@ padlength = 5
     
 padTree:: (Show a, Show b) => Int -> Int -> Bool -> (Arbol23 a b)-> String
 padTree nivel acum doPad t = case t of 
-				  (Hoja x) -> initialPad ++ stuff x
+				                          (Hoja x) -> initialPad ++ stuff x
                                   (Dos x i d) -> initialPad ++ stuff x ++ 
                                                  pad padlength ++ rec x False i ++ "\n" ++
                                                  rec x True d ++ "\n"
@@ -53,23 +53,30 @@ foldA23 fHoja fDos fTres arbol23 =
 
 --Lista en preorden de los internos del árbol.
 internos::Arbol23 a b->[b]
-internos = foldA23 (\_ -> []) (\b i1 i2 -> b:(i1 ++ i2)) (\b1 b2 i1 i2 i3 -> b1:b2:(i1 ++ i2 ++ i3))
+internos = foldA23 (\_ -> []) 
+                   (\b i1 i2 -> b:(i1 ++ i2)) 
+                   (\b1 b2 i1 i2 i3 -> b1:b2:(i1 ++ i2 ++ i3))
 
 --Lista las hojas de izquierda a derecha.
 hojas::Arbol23 a b->[a]
-hojas = foldA23 (\h ->[h]) (\_ h1 h2 -> h1 ++ h2) (\_ _ h1 h2 h3 -> h1 ++ h2 ++ h3)
+hojas = foldA23 (\h ->[h]) 
+                (\_ h1 h2 -> h1 ++ h2) 
+                (\_ _ h1 h2 h3 -> h1 ++ h2 ++ h3)
 
 --Nos dice si un Arbol23 es una Hoja o no.
 esHoja::Arbol23 a b->Bool
-esHoja = foldA23 (\h -> True) (\_ _ _ -> False) (\_ _ _ _ _ -> False)
+esHoja arbol23 = case arbol23 of
+              Hoja _ -> True
+              _ -> False
 
 {- Ejercicio 3 -}
 
 --Recibe 2 funciones y un Arbol23, y lo transforma en otro Arbol23 aplica la primer función a las hojas del Arbol 
 --y la segunda a todos los nodos internos del mismo.
 mapA23::(a->c)->(b->d)->Arbol23 a b->Arbol23 c d
-mapA23 fHoja fInterno = foldA23 (\h -> Hoja (fHoja h)) (\b h1 h2 -> Dos (fInterno b) h1 h2) 
-    (\b1 b2 h1 h2 h3 -> Tres (fInterno b1) (fInterno b2) h1 h2 h3)
+mapA23 fHoja fInterno = foldA23 (\h -> Hoja (fHoja h)) 
+                                (\b h1 h2 -> Dos (fInterno b) h1 h2) 
+                                (\b1 b2 h1 h2 h3 -> Tres (fInterno b1) (fInterno b2) h1 h2 h3)
 
 --Ejemplo de uso de mapA23.
 --Incrementa en 1 el valor de las hojas.
@@ -81,17 +88,19 @@ incrementarHojas = mapA23 (+1) id
 --Trunca el árbol hasta un determinado nivel. Cuando llega a 0, reemplaza el resto del árbol por una hoja con el valor indicado.
 truncar::a->Integer->Arbol23 a b->Arbol23 a b
 truncar a i a23 = foldA23 (\h -> cortar (Hoja h))
-          (\d r1 r2 nivel -> cortar (Dos d (r1 (nivel -1)) (r2 (nivel-1))) nivel)
-          (\t1 t2 r1 r2 r3 nivel -> cortar (Tres t1 t2 (r1 (nivel-1)) (r2 (nivel-1)) (r3 (nivel-1))) nivel)
-          a23 i
-          where cortar = \value nivel -> if nivel > 0 then value else Hoja a
+                          (\d r1 r2 nivel -> cortar (Dos d (r1 (nivel -1)) (r2 (nivel-1))) nivel)
+                          (\t1 t2 r1 r2 r3 nivel -> cortar (Tres t1 t2 (r1 (nivel-1)) (r2 (nivel-1)) (r3 (nivel-1))) nivel)
+                          a23 i
+                        where cortar = \value nivel -> if nivel > 0 then value else Hoja a
 
 {- Ejercicio 5 -}
 
 --Evalúa las funciones tomando los valores de los hijos como argumentos.
 --En el caso de que haya 3 hijos, asocia a izquierda.
 evaluar::Arbol23 a (a->a->a)->a
-evaluar = foldA23 (id) (\b i1 i2 -> (b i1 i2)) (\b1 b2 i1 i2 i3 -> (b2 (b1 i1 i2) i3))
+evaluar = foldA23 (id) 
+                  (\b i1 i2 -> (b i1 i2)) 
+                  (\b1 b2 i1 i2 i3 -> (b2 (b1 i1 i2) i3))
 
 {- Árboles de ejemplo. -}
 arbolito1::Arbol23 Char Int

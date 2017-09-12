@@ -13,18 +13,18 @@ padlength = 5
     
 padTree:: (Show a, Show b) => Int -> Int -> Bool -> (Arbol23 a b)-> String
 padTree nivel acum doPad t = case t of 
-				                          (Hoja x) -> initialPad ++ stuff x
-                                  (Dos x i d) -> initialPad ++ stuff x ++ 
-                                                 pad padlength ++ rec x False i ++ "\n" ++
-                                                 rec x True d ++ "\n"
-                                  (Tres x y i m d) -> initialPad ++ stuff x ++ --(' ':tail (stuff y)) ++
-                                                      pad padlength ++ rec x False i ++ "\n" ++
-                                                      pad levelPad ++ stuff y ++ pad padlength ++ rec x False m ++ "\n" ++
-                                                      rec x True d ++ "\n" 
-  where l = length . stuff
-	levelPad = (padlength*nivel + acum)
-	initialPad = (if doPad then pad levelPad else "")
-	rec x = padTree (nivel+1) (acum+l x)
+    (Hoja x) -> initialPad ++ stuff x
+    (Dos x i d) -> initialPad ++ stuff x ++ 
+                   pad padlength ++ rec x False i ++ "\n" ++
+                   rec x True d ++ "\n"
+    (Tres x y i m d) -> initialPad ++ stuff x ++ --(' ':tail (stuff y)) ++
+                        pad padlength ++ rec x False i ++ "\n" ++
+                        pad levelPad ++ stuff y ++ pad padlength ++ rec x False m ++ "\n" ++
+                        rec x True d ++ "\n"
+    where l = length . stuff
+          levelPad = (padlength*nivel + acum)
+          initialPad = (if doPad then pad levelPad else "")
+          rec x = padTree (nivel+1) (acum+l x)
             
 stuff:: Show a => a -> String
 stuff x = if n > l then pad (n-l) ++ s else s

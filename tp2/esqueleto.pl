@@ -23,11 +23,21 @@ adyacenteEnRango(T,F1,C1,F2,C2) :- adyacente(F1,C1,F2,C2), enRango(T,F2,C2).
 
 %------------------Predicados a definir:------------------%
 
+%   Ejercicio 1   %
+
 %contenido(+?Tablero, ?Fila, ?Columna, ?Contenido)
-contenido(Tablero, Fila, Columna, Contenido) :- nth1(Columna, F, Contenido), nth1(Fila, Tablero, F).
+contenido(Tablero, Fila, Columna, Contenido) :- nth1(Fila, Tablero, F), nth1(Columna, F, Contenido).
+
+%   Ejercicio 2   %
+
+%adyacentes(+Tablero, +Fila, +Columna, -Adyacentes)
+adyacentes(Tablero, Fila, Columna, Adyacentes) :- member([(FAdy, CAdy)], Adyacentes), adyacenteEnRango(Tablero, Fila, Columna, FAdy, CAdy).
+
+%adyacentesLibres(+Tablero, +Fila, +Columna)
+adyacentesLibres(Tablero, Fila, Columna) :- adyacenteEnRango(Tablero, Fila, Columna, FAdy, CAdy), contenido(Tablero, FAdy, CAdy, Ady), Ady \== o.
 
 %disponible(+Tablero, ?Fila, ?Columna)
-%disponible(Tablero, Fila, Columna) :- not(atom(contenido(Tablero, CA, FA))), adyacenteEnRango(Tablero, Fila, Columna, CA, FA).
+disponible(Tablero, Fila, Columna) :- Cont \== o, contenido(Tablero, Fila, Columna, Cont), adyacentesLibres(Tablero, Fila, Columna).
 
 %puedoColocar(+CantPiezas, ?Direccion, +Tablero, ?Fila, ?Columna)
 

@@ -26,7 +26,8 @@ adyacenteEnRango(T,F1,C1,F2,C2) :- adyacente(F1,C1,F2,C2), enRango(T,F2,C2).
 %%% Ejercicio 1 %%%
 
 %contenido(+?Tablero, ?Fila, ?Columna, ?Contenido)
-contenido(Tablero, Fila, Columna, Contenido) :- nth1(Fila, Tablero, F), nth1(Columna, F, Contenido).
+contenido(Tablero, Fila, Columna, Contenido) :- 
+        nth1(Fila, Tablero, FilaTablero), nth1(Columna, FilaTablero, Contenido).
 
 %%% Ejercicio 2 %%%
 
@@ -58,8 +59,8 @@ ubicarBarcos([Barco | Barcos], Tablero) :- colocarBarco(Barco, Tablero), ubicarB
 
 %colocarBarco(+Barco, +?Tablero)
 colocarBarco(Barco, Tablero) :-
-        setof((X, Y), puedoColocar(Barco, _, Tablero, X, Y), PosicionesDisponibles),
-        member((Fila, Columna), PosicionesDisponibles), colocarBarcoEnDireccion(Barco, _, Tablero, Fila, Columna).
+        setof((X, Y, D), puedoColocar(Barco, D, Tablero, X, Y), ConfiguracionesDisponibles),
+        member((X, Y, D), ConfiguracionesDisponibles), colocarBarcoEnDireccion(Barco, D, Tablero, X, Y).
 
 %colocarBarcoEnDirecion(+PiezasBarco, ?Direccion, +?Tablero, +Fila, +Columna)
 colocarBarcoEnDireccion(1, _, Tablero, Fila, Columna) :- contenido(Tablero, Fila, Columna, o).

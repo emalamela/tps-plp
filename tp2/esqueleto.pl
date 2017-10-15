@@ -69,7 +69,16 @@ colocarBarcoEnDireccion(PiezasBarco, Direccion, Tablero, Fila, Columna) :-
         siguientePosicionEnDireccion(Direccion, Fila, Columna, SigFila, SigColumna), PiezasRestantes is PiezasBarco - 1,
         colocarBarcoEnDireccion(PiezasRestantes, Direccion, Tablero, SigFila, SigColumna).
 
+%%% Ejercicio 5 %%%
+
 %completarConAgua(+?Tablero)
+completarConAgua(Tablero) :- maplist(completarFilaConAgua, Tablero).
+
+%completarFilaConAgua(?FilaTablero)
+completarFilaConAgua([]).
+completarFilaConAgua([ElementoTablero | FilaTablero]) :- ElementoTablero == o, completarFilaConAgua(FilaTablero).
+completarFilaConAgua([ElementoTablero | FilaTablero]) :- 
+        ElementoTablero \== o, ElementoTablero = '~', completarFilaConAgua(FilaTablero).
 
 %golpear(+Tablero, +NumFila, +NumColumna, -NuevoTab)
 

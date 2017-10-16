@@ -27,6 +27,7 @@ adyacenteEnRango(T,F1,C1,F2,C2) :- adyacente(F1,C1,F2,C2), enRango(T,F2,C2).
 
 %contenido(+?Tablero, ?Fila, ?Columna, ?Contenido)
 contenido(Tablero, Fila, Columna, Contenido) :- 
+        enRango(Tablero,Fila,Columna),
         nth1(Fila, Tablero, FilaTablero), nth1(Columna, FilaTablero, Contenido).
 
 %%% Ejercicio 2 %%%
@@ -80,13 +81,57 @@ completarFilaConAgua([ElementoTablero | FilaTablero]) :- ElementoTablero == o, c
 completarFilaConAgua([ElementoTablero | FilaTablero]) :- 
         ElementoTablero \== o, ElementoTablero = '~', completarFilaConAgua(FilaTablero).
 
+%%% Ejercicio 6 %%%
 %golpear(+Tablero, +NumFila, +NumColumna, -NuevoTab)
+golpear(Tablero , NumFila , NumColumna , NuevoTab) :-
+        enRango(Tablero,NumFila,NumColumna),
+        eliminarElemento(Tablero,NumFila,NumColumna,1,NuevoTab).
 
+%eliminarElemento(+Tablero,+NumFila,+NumColumna,+ContadorFila,?NuevoTab)
+eliminarElemento([],_,_,_,[]).
+eliminarElemento([Fila|Filas],NumFila,NumColumna,NumFila,[NFila|NFilas]) :- 
+        eliminarElementoDeFila(Fila,NumColumna,1,NFila),
+        FilaSiguiente is NumFila + 1,
+        eliminarElemento(Filas,NumFila,NumColumna,FilaSiguiente,NFilas).
+eliminarElemento([Fila|Filas],NumFila,NumColumna,ContadorFila,[Fila|NFilas]) :-
+        ContadorFila \= NumFila,
+        FilaSiguiente is ContadorFila + 1,
+        eliminarElemento(Filas,NumFila,NumColumna,FilaSiguiente,NFilas).
+
+%eliminarElementoDeFila(+Fila,+NumColumna,+ContadorColumna,?NuevaFila)
+eliminarElementoDeFila([],_,_,[]).
+eliminarElementoDeFila([Columna|Columnas],NumColumna,NumColumna,['~'|NColumnas]) :- 
+        ColumnaSiguiente is NumColumna + 1,
+        eliminarElementoDeFila(Columnas,NumColumna,ColumnaSiguiente,NColumnas).
+eliminarElementoDeFila([Columna|Columnas],NumColumna,ContadorColumna,[Columna|NColumnas]) :-
+        ContadorColumna \= NumColumna,
+        ColumnaSiguiente is ContadorColumna + 1,
+        eliminarElementoDeFila(Columnas,NumColumna,ColumnaSiguiente,NColumnas).
+
+%%% Ejercicio 7 y 8 %%%
 % Completar instanciación soportada y justificar.
-%atacar(Tablero, Fila, Columna, Resultado, NuevoTab)
+%atacar(+Tablero, +Fila, +Columna, -Resultado, -NuevoTab)
+atacar(Tablero,Fila,Columna,'agua',NuevoTab) :- 
+        golpear(Tablero,Fila,Columna,NuevoTab),
+        Tablero = NuevoTab.
+atacar(Tablero,Fila,Columna,'hundido',NuevoTab) :- 
+        golpear(Tablero,Fila,Columna,NuevoTab),
+        Tablero \= NuevoTab,
+        forall(adyacenteEnRango(Tablero, Fila, Columna, FilaAdy, ColumnaAdy), not(esBarco(NuevoTab,FilaAdy,ColumnaAdy))).
+atacar(Tablero,Fila,Columna,'tocado',NuevoTab) :- 
+        golpear(Tablero,Fila,Columna,NuevoTab),
+        Tablero \= NuevoTab,
+        not(forall(adyacenteEnRango(Tablero, Fila, Columna, FilaAdy, ColumnaAdy), not(esBarco(NuevoTab,FilaAdy,ColumnaAdy)))).
 
+%esBarco(+Tablero,?Fila,?Columna)
+esBarco(Tablero,Fila,Columna) :-
+        contenido(Tablero,Fila,Columna,Contenido), Contenido == o.
 %------------------Tests:------------------%
 
 test(1) :- matriz(M,2,3), adyacenteEnRango(M,2,2,2,3).
 test(2) :- matriz(M,2,3), setof((F,C), adyacenteEnRango(M,1,1,F,C), [ (1, 2), (2, 1), (2, 2)]).
-tests :- forall(between(1,2,N), test(N)). % Cambiar el 2 por la cantidad de tests que tengan.
+test(3) :- Tablero = [[o,~],[~,~],[o,o]], golpear(Tablero,1,1,NuevoTab), NuevoTab = [[~,~],[~,~],[o,o]].
+test(4) :- Tablero = [[o,~],[~,~],[o,o]], atacar(Tablero,1,2,Resultado,NuevoTab), Resultado = 'agua'.
+test(5) :- Tablero = [[o,~],[~,~],[~,o]], atacar(Tablero,3,2,Resultado,NuevoTab), Resultado = 'hundido'.
+test(6) :- Tablero = [[o,~],[~,~],[o,o]], atacar(Tablero,3,1,Resultado,NuevoTab), Resultado = 'tocado'.
+tests :- forall(between(1,6,N), test(N)). % Cambiar el 2 por la cantidad de tests que tengan.

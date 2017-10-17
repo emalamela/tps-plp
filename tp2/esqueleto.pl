@@ -87,6 +87,7 @@ golpear(Tablero , NumFila , NumColumna , NuevoTab) :-
         enRango(Tablero,NumFila,NumColumna),
         eliminarElemento(Tablero,NumFila,NumColumna,1,NuevoTab).
 
+%ContadorFila debe venir en 1
 %eliminarElemento(+Tablero,+NumFila,+NumColumna,+ContadorFila,?NuevoTab)
 eliminarElemento([],_,_,_,[]).
 eliminarElemento([Fila|Filas],NumFila,NumColumna,NumFila,[NFila|NFilas]) :- 
@@ -98,6 +99,7 @@ eliminarElemento([Fila|Filas],NumFila,NumColumna,ContadorFila,[Fila|NFilas]) :-
         FilaSiguiente is ContadorFila + 1,
         eliminarElemento(Filas,NumFila,NumColumna,FilaSiguiente,NFilas).
 
+%ContadorColumna debe venir en 1
 %eliminarElementoDeFila(+Fila,+NumColumna,+ContadorColumna,?NuevaFila)
 eliminarElementoDeFila([],_,_,[]).
 eliminarElementoDeFila([Columna|Columnas],NumColumna,NumColumna,['~'|NColumnas]) :- 
@@ -111,6 +113,8 @@ eliminarElementoDeFila([Columna|Columnas],NumColumna,ContadorColumna,[Columna|NC
 %%% Ejercicio 7 y 8 %%%
 % Completar instanciación soportada y justificar.
 %atacar(+Tablero, +Fila, +Columna, -Resultado, -NuevoTab)
+%Ni Tablero ni Fila ni Columna son reversibles, pues en enRango no lo son, y golpear utiliza enRango.
+%NuevoTab tampoco puede ser reversible porque en golpear no lo es
 atacar(Tablero,Fila,Columna,'agua',NuevoTab) :- 
         golpear(Tablero,Fila,Columna,NuevoTab),
         Tablero = NuevoTab.

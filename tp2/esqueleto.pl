@@ -42,10 +42,14 @@ posicionLibre(Tablero, Fila, Columna) :- contenido(Tablero, Fila, Columna, Cont)
 %%% Ejercicio 3 %%%
 
 %puedoColocar(+CantPiezas, ?Direccion, +Tablero, ?Fila, ?Columna)
-puedoColocar(1, _, Tablero, Fila, Columna) :- disponible(Tablero, Fila, Columna).
+puedoColocar(1, Direccion, Tablero, Fila, Columna) :- 
+        esDireccion(Direccion), disponible(Tablero, Fila, Columna).
 puedoColocar(CantPiezas, Direccion, Tablero, Fila, Columna) :- 
         CantPiezas > 1, disponible(Tablero, Fila, Columna), siguientePosicionEnDireccion(Direccion, Fila, Columna, X, Y),
         PiezasRestantes is CantPiezas - 1, puedoColocar(PiezasRestantes, Direccion, Tablero, X, Y).
+
+%esDireccion(?Direccion)
+esDireccion(Direccion) :- member(Direccion, [horizontal, vertical]).
 
 %siguientePosicionEnDireccion(?Direccion, +Fila, +Columna, -SigFila, -SigColumna)
 siguientePosicionEnDireccion(horizontal, Fila, Columna, SigFila, SigColumna) :- SigFila is Fila, SigColumna is Columna + 1.

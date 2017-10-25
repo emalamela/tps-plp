@@ -85,32 +85,19 @@ completarFilaConAgua([ElementoTablero | FilaTablero]) :-
 
 %%% Ejercicio 6 %%%
 %golpear(+Tablero, +NumFila, +NumColumna, -NuevoTab)
-golpear(Tablero , NumFila , NumColumna , NuevoTab) :-
-        enRango(Tablero,NumFila,NumColumna),
-        eliminarElemento(Tablero,NumFila,NumColumna,1,NuevoTab).
+golpear([], _, _, NuevoTab) :- NuevoTab = [].
+golpear([FilaGolpear | Filas], 1, NumColumna, NuevoTab) :- 
+        golpearFila(FilaGolpear, NumColumna, FilaGolpeada), NuevoTab = [FilaGolpeada | Filas].
+golpear([Fila | Filas], NumFila, NumColumna, NuevoTab) :- 
+        NumFila > 1, ProximaFila is NumFila - 1, golpear(Filas, ProximaFila, NumColumna, TableroGolpeado),
+        NuevoTab = [Fila | TableroGolpeado].
 
-%ContadorFila debe venir en 1
-%eliminarElemento(+Tablero,+NumFila,+NumColumna,+ContadorFila,?NuevoTab)
-eliminarElemento([],_,_,_,[]).
-eliminarElemento([Fila|Filas],NumFila,NumColumna,NumFila,[NFila|NFilas]) :- 
-        eliminarElementoDeFila(Fila,NumColumna,1,NFila),
-        FilaSiguiente is NumFila + 1,
-        eliminarElemento(Filas,NumFila,NumColumna,FilaSiguiente,NFilas).
-eliminarElemento([Fila|Filas],NumFila,NumColumna,ContadorFila,[Fila|NFilas]) :-
-        ContadorFila \= NumFila,
-        FilaSiguiente is ContadorFila + 1,
-        eliminarElemento(Filas,NumFila,NumColumna,FilaSiguiente,NFilas).
-
-%ContadorColumna debe venir en 1
-%eliminarElementoDeFila(+Fila,+NumColumna,+ContadorColumna,?NuevaFila)
-eliminarElementoDeFila([],_,_,[]).
-eliminarElementoDeFila([Columna|Columnas],NumColumna,NumColumna,['~'|NColumnas]) :- 
-        ColumnaSiguiente is NumColumna + 1,
-        eliminarElementoDeFila(Columnas,NumColumna,ColumnaSiguiente,NColumnas).
-eliminarElementoDeFila([Columna|Columnas],NumColumna,ContadorColumna,[Columna|NColumnas]) :-
-        ContadorColumna \= NumColumna,
-        ColumnaSiguiente is ContadorColumna + 1,
-        eliminarElementoDeFila(Columnas,NumColumna,ColumnaSiguiente,NColumnas).
+%golpearFila(+FilaGolpear, +NumColumna, -NuevaFila).
+golpearFila([], _, NuevaFila) :- NuevaFila = [].
+golpearFila([_ | Elementos], 1, NuevaFila) :- NuevaFila = ['~' | Elementos].
+golpearFila([Elemento | Elementos], NumColumna, NuevaFila) :- 
+        NumColumna > 1, ProximaColumna is NumColumna - 1, golpearFila(Elementos, ProximaColumna, FilaGolpeada),
+        NuevaFila = [Elemento | FilaGolpeada].
 
 %%% Ejercicio 7 y 8 %%%
 % Completar instanciación soportada y justificar.
@@ -130,8 +117,9 @@ atacar(Tablero,Fila,Columna,'tocado',NuevoTab) :-
         not(forall(adyacenteEnRango(Tablero, Fila, Columna, FilaAdy, ColumnaAdy), not(esBarco(NuevoTab,FilaAdy,ColumnaAdy)))).
 
 %esBarco(+Tablero,?Fila,?Columna)
-esBarco(Tablero,Fila,Columna) :-
-        contenido(Tablero,Fila,Columna,Contenido), Contenido == o.
+esBarco(Tablero, Fila, Columna) :-
+        contenido(Tablero, Fila, Columna, Contenido), Contenido == o.
+
 %------------------Tests:------------------%
 
 test(1) :- matriz(M,2,3), adyacenteEnRango(M,2,2,2,3).

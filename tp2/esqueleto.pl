@@ -27,7 +27,6 @@ adyacenteEnRango(T,F1,C1,F2,C2) :- adyacente(F1,C1,F2,C2), enRango(T,F2,C2).
 
 %contenido(+?Tablero, ?Fila, ?Columna, ?Contenido)
 contenido(Tablero, Fila, Columna, Contenido) :- 
-        enRango(Tablero,Fila,Columna),
         nth1(Fila, Tablero, FilaTablero), nth1(Columna, FilaTablero, Contenido).
 
 %%% Ejercicio 2 %%%

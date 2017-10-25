@@ -59,19 +59,18 @@ siguientePosicionEnDireccion(vertical, Fila, Columna, SigFila, SigColumna) :- Si
 
 %ubicarBarcos(+Barcos, +?Tablero)
 ubicarBarcos([], _).
-ubicarBarcos([Barco | Barcos], Tablero) :- colocarBarco(Barco, Tablero), ubicarBarcos(Barcos, Tablero).
+ubicarBarcos([Barco | Barcos], Tablero) :- 
+        puedoColocar(Barco, Direccion, Tablero, Fila, Columna), 
+        colocarBarco(Barco, Direccion, Tablero, Fila, Columna), ubicarBarcos(Barcos, Tablero).
 
-%colocarBarco(+Barco, +?Tablero)
-colocarBarco(Barco, Tablero) :-
-        setof((X, Y, D), puedoColocar(Barco, D, Tablero, X, Y), ConfiguracionesDisponibles),
-        member((X, Y, D), ConfiguracionesDisponibles), colocarBarcoEnDireccion(Barco, D, Tablero, X, Y).
-
-%colocarBarcoEnDirecion(+PiezasBarco, ?Direccion, +?Tablero, +Fila, +Columna)
-colocarBarcoEnDireccion(1, _, Tablero, Fila, Columna) :- contenido(Tablero, Fila, Columna, o).
-colocarBarcoEnDireccion(PiezasBarco, Direccion, Tablero, Fila, Columna) :-
+%colocarBarco(+PiezasBarco, ?Direccion, +?Tablero, +Fila, +Columna)
+/* Este caso se debe evaluar particularmente para no generar repetidos colocando barcos de tamaño 1 */
+/* Este predicado ASUME que se pueden colocar las piezas de los barcos en las posiciones pedidas */
+colocarBarco(1, horizontal, Tablero, Fila, Columna) :- contenido(Tablero, Fila, Columna, o).
+colocarBarco(PiezasBarco, Direccion, Tablero, Fila, Columna) :-
         PiezasBarco > 1, contenido(Tablero, Fila, Columna, o),
         siguientePosicionEnDireccion(Direccion, Fila, Columna, SigFila, SigColumna), PiezasRestantes is PiezasBarco - 1,
-        colocarBarcoEnDireccion(PiezasRestantes, Direccion, Tablero, SigFila, SigColumna).
+        colocarBarco(PiezasRestantes, Direccion, Tablero, SigFila, SigColumna).
 
 %%% Ejercicio 5 %%%
 

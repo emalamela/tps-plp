@@ -104,28 +104,23 @@ golpearFila([Elemento | Elementos], NumColumna, NuevaFila) :-
 %atacar(+Tablero, +Fila, +Columna, -Resultado, -NuevoTab)
 %Ni Tablero ni Fila ni Columna son reversibles, pues en enRango no lo son, y golpear utiliza enRango.
 %NuevoTab tampoco puede ser reversible porque en golpear no lo es
-atacar(Tablero,Fila,Columna,'agua',NuevoTab) :- 
-        golpear(Tablero,Fila,Columna,NuevoTab),
-        Tablero = NuevoTab.
-atacar(Tablero,Fila,Columna,'hundido',NuevoTab) :- 
-        golpear(Tablero,Fila,Columna,NuevoTab),
-        Tablero \= NuevoTab,
-        forall(adyacenteEnRango(Tablero, Fila, Columna, FilaAdy, ColumnaAdy), not(esBarco(NuevoTab,FilaAdy,ColumnaAdy))).
-atacar(Tablero,Fila,Columna,'tocado',NuevoTab) :- 
-        golpear(Tablero,Fila,Columna,NuevoTab),
-        Tablero \= NuevoTab,
-        not(forall(adyacenteEnRango(Tablero, Fila, Columna, FilaAdy, ColumnaAdy), not(esBarco(NuevoTab,FilaAdy,ColumnaAdy)))).
+atacar(Tablero, Fila, Columna, 'agua', Tablero) :- not(esBarco(Tablero, Fila, Columna)).
+atacar(Tablero, Fila, Columna, 'hundido', NuevoTab) :- 
+        golpear(Tablero, Fila, Columna, NuevoTab), Tablero \= NuevoTab,
+        forall(adyacenteEnRango(Tablero, Fila, Columna, FilaAdy, ColumnaAdy), not(esBarco(NuevoTab, FilaAdy, ColumnaAdy))).
+atacar(Tablero, Fila, Columna, 'tocado', NuevoTab) :- 
+        golpear(Tablero, Fila, Columna, NuevoTab), Tablero \= NuevoTab,
+        adyacenteEnRango(Tablero, Fila, Columna, FilaAdy, ColumnaAdy), esBarco(Tablero, FilaAdy, ColumnaAdy).
 
-%esBarco(+Tablero,?Fila,?Columna)
-esBarco(Tablero, Fila, Columna) :-
-        contenido(Tablero, Fila, Columna, Contenido), Contenido == o.
+%esBarco(+Tablero, ?Fila, ?Columna)
+esBarco(Tablero, Fila, Columna) :- contenido(Tablero, Fila, Columna, o).
 
 %------------------Tests:------------------%
 
 test(1) :- matriz(M,2,3), adyacenteEnRango(M,2,2,2,3).
 test(2) :- matriz(M,2,3), setof((F,C), adyacenteEnRango(M,1,1,F,C), [ (1, 2), (2, 1), (2, 2)]).
 test(3) :- Tablero = [[o,~],[~,~],[o,o]], golpear(Tablero,1,1,NuevoTab), NuevoTab = [[~,~],[~,~],[o,o]].
-test(4) :- Tablero = [[o,~],[~,~],[o,o]], atacar(Tablero,1,2,Resultado,NuevoTab), Resultado = 'agua'.
-test(5) :- Tablero = [[o,~],[~,~],[~,o]], atacar(Tablero,3,2,Resultado,NuevoTab), Resultado = 'hundido'.
-test(6) :- Tablero = [[o,~],[~,~],[o,o]], atacar(Tablero,3,1,Resultado,NuevoTab), Resultado = 'tocado'.
+test(4) :- Tablero = [[o,~],[~,~],[o,o]], atacar(Tablero,1,2,Resultado, _), Resultado = 'agua'.
+test(5) :- Tablero = [[o,~],[~,~],[~,o]], atacar(Tablero,3,2,Resultado, _), Resultado = 'hundido'.
+test(6) :- Tablero = [[o,~],[~,~],[o,o]], atacar(Tablero,3,1,Resultado, _), Resultado = 'tocado'.
 tests :- forall(between(1,6,N), test(N)). % Cambiar el 2 por la cantidad de tests que tengan.

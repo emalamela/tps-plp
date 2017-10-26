@@ -58,10 +58,10 @@ siguientePosicionEnDireccion(vertical, Fila, Columna, SigFila, SigColumna) :- Si
 %%% Ejercicio 4 %%%
 
 %ubicarBarcos(+Barcos, +?Tablero)
-ubicarBarcos([], _).
-ubicarBarcos([Barco | Barcos], Tablero) :- 
-        puedoColocar(Barco, Direccion, Tablero, Fila, Columna), 
-        colocarBarco(Barco, Direccion, Tablero, Fila, Columna), ubicarBarcos(Barcos, Tablero).
+ubicarBarcos(Barcos, Tablero) :- maplist(ubicarBarco(Tablero), Barcos).
+
+%ubicarBarco(+?Tablero, +Barco)
+ubicarBarco(Tablero, Barco) :- puedoColocar(Barco, Direccion, Tablero, Fila, Columna), colocarBarco(Barco, Direccion, Tablero, Fila, Columna).
 
 %colocarBarco(+PiezasBarco, ?Direccion, +?Tablero, +Fila, +Columna)
 /* Este caso se debe evaluar particularmente para no generar repetidos colocando barcos de tamaño 1 */
@@ -78,26 +78,24 @@ colocarBarco(PiezasBarco, Direccion, Tablero, Fila, Columna) :-
 completarConAgua(Tablero) :- maplist(completarFilaConAgua, Tablero).
 
 %completarFilaConAgua(?FilaTablero)
-completarFilaConAgua([]).
-completarFilaConAgua([ElementoTablero | FilaTablero]) :- ElementoTablero == o, completarFilaConAgua(FilaTablero).
-completarFilaConAgua([ElementoTablero | FilaTablero]) :- 
-        ElementoTablero \== o, ElementoTablero = '~', completarFilaConAgua(FilaTablero).
+completarFilaConAgua(FilaTablero) :- maplist(completarPosicionConAgua, FilaTablero).
+
+%completarPosicionConAgua(?ElementoTablero)
+completarPosicionConAgua(~).
+completarPosicionConAgua(ElementoTablero) :- ElementoTablero == o.
 
 %%% Ejercicio 6 %%%
 %golpear(+Tablero, +NumFila, +NumColumna, -NuevoTab)
-golpear([], _, _, NuevoTab) :- NuevoTab = [].
-golpear([FilaGolpear | Filas], 1, NumColumna, NuevoTab) :- 
-        golpearFila(FilaGolpear, NumColumna, FilaGolpeada), NuevoTab = [FilaGolpeada | Filas].
-golpear([Fila | Filas], NumFila, NumColumna, NuevoTab) :- 
-        NumFila > 1, ProximaFila is NumFila - 1, golpear(Filas, ProximaFila, NumColumna, TableroGolpeado),
-        NuevoTab = [Fila | TableroGolpeado].
+golpear([], _, _, []).
+golpear([FilaGolpear | Filas], 1, NumColumna, [FilaGolpeada | Filas]) :- golpearFila(FilaGolpear, NumColumna, FilaGolpeada).
+golpear([Fila | Filas], NumFila, NumColumna, [Fila | TableroGolpeado]) :- 
+        NumFila > 1, ProximaFila is NumFila - 1, golpear(Filas, ProximaFila, NumColumna, TableroGolpeado).
 
 %golpearFila(+FilaGolpear, +NumColumna, -NuevaFila).
-golpearFila([], _, NuevaFila) :- NuevaFila = [].
-golpearFila([_ | Elementos], 1, NuevaFila) :- NuevaFila = ['~' | Elementos].
-golpearFila([Elemento | Elementos], NumColumna, NuevaFila) :- 
-        NumColumna > 1, ProximaColumna is NumColumna - 1, golpearFila(Elementos, ProximaColumna, FilaGolpeada),
-        NuevaFila = [Elemento | FilaGolpeada].
+golpearFila([], _, []).
+golpearFila([_ | Elementos], 1, ['~' | Elementos]).
+golpearFila([Elemento | Elementos], NumColumna, [Elemento | FilaGolpeada]) :- 
+        NumColumna > 1, ProximaColumna is NumColumna - 1, golpearFila(Elementos, ProximaColumna, FilaGolpeada).
 
 %%% Ejercicio 7 y 8 %%%
 % Completar instanciación soportada y justificar.
@@ -106,11 +104,11 @@ golpearFila([Elemento | Elementos], NumColumna, NuevaFila) :-
 %NuevoTab tampoco puede ser reversible porque en golpear no lo es
 atacar(Tablero, Fila, Columna, 'agua', Tablero) :- not(esBarco(Tablero, Fila, Columna)).
 atacar(Tablero, Fila, Columna, 'hundido', NuevoTab) :- 
-        golpear(Tablero, Fila, Columna, NuevoTab), Tablero \= NuevoTab,
-        forall(adyacenteEnRango(Tablero, Fila, Columna, FilaAdy, ColumnaAdy), not(esBarco(NuevoTab, FilaAdy, ColumnaAdy))).
+        golpear(Tablero, Fila, Columna, NuevoTab), contenido(Tablero, Fila, Columna, BarcoAHundir), contenido(NuevoTab, Fila, Columna, Agua),
+        BarcoAHundir \== Agua, forall(adyacenteEnRango(Tablero, Fila, Columna, FilaAdy, ColumnaAdy), not(esBarco(NuevoTab, FilaAdy, ColumnaAdy))).
 atacar(Tablero, Fila, Columna, 'tocado', NuevoTab) :- 
-        golpear(Tablero, Fila, Columna, NuevoTab), Tablero \= NuevoTab,
-        adyacenteEnRango(Tablero, Fila, Columna, FilaAdy, ColumnaAdy), esBarco(Tablero, FilaAdy, ColumnaAdy).
+        golpear(Tablero, Fila, Columna, NuevoTab), contenido(Tablero, Fila, Columna, BarcoATocar), contenido(NuevoTab, Fila, Columna, Agua),
+        BarcoATocar \== Agua, adyacenteEnRango(Tablero, Fila, Columna, FilaAdy, ColumnaAdy), esBarco(Tablero, FilaAdy, ColumnaAdy).
 
 %esBarco(+Tablero, ?Fila, ?Columna)
 esBarco(Tablero, Fila, Columna) :- contenido(Tablero, Fila, Columna, o).

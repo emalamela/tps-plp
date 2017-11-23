@@ -52,8 +52,8 @@ puedoColocar(CantPiezas, Direccion, Tablero, Fila, Columna) :-
 esDireccion(Direccion) :- member(Direccion, [horizontal, vertical]).
 
 %siguientePosicionEnDireccion(?Direccion, +Fila, +Columna, -SigFila, -SigColumna)
-siguientePosicionEnDireccion(horizontal, Fila, Columna, SigFila, SigColumna) :- SigFila is Fila, SigColumna is Columna + 1.
-siguientePosicionEnDireccion(vertical, Fila, Columna, SigFila, SigColumna) :- SigFila is Fila + 1, SigColumna is Columna.
+siguientePosicionEnDireccion(horizontal, Fila, Columna, Fila, SigColumna) :- SigColumna is Columna + 1.
+siguientePosicionEnDireccion(vertical, Fila, Columna, SigFila, Columna) :- SigFila is Fila + 1.
 
 %%% Ejercicio 4 %%%
 
@@ -86,32 +86,36 @@ completarPosicionConAgua(ElementoTablero) :- ElementoTablero == o.
 
 %%% Ejercicio 6 %%%
 %golpear(+Tablero, +NumFila, +NumColumna, -NuevoTab)
-golpear([], _, _, []).
 golpear([FilaGolpear | Filas], 1, NumColumna, [FilaGolpeada | Filas]) :- golpearFila(FilaGolpear, NumColumna, FilaGolpeada).
 golpear([Fila | Filas], NumFila, NumColumna, [Fila | TableroGolpeado]) :- 
         NumFila > 1, ProximaFila is NumFila - 1, golpear(Filas, ProximaFila, NumColumna, TableroGolpeado).
 
 %golpearFila(+FilaGolpear, +NumColumna, -NuevaFila).
-golpearFila([], _, []).
-golpearFila([_ | Elementos], 1, ['~' | Elementos]).
+golpearFila([_ | Elementos], 1, [~ | Elementos]).
 golpearFila([Elemento | Elementos], NumColumna, [Elemento | FilaGolpeada]) :- 
         NumColumna > 1, ProximaColumna is NumColumna - 1, golpearFila(Elementos, ProximaColumna, FilaGolpeada).
 
 %%% Ejercicio 7 y 8 %%%
-% Completar instanciación soportada y justificar.
 %atacar(+Tablero, +Fila, +Columna, -Resultado, -NuevoTab)
-%Ni Tablero ni Fila ni Columna son reversibles, pues en enRango no lo son, y golpear utiliza enRango.
-%NuevoTab tampoco puede ser reversible porque en golpear no lo es
-atacar(Tablero, Fila, Columna, 'agua', Tablero) :- not(esBarco(Tablero, Fila, Columna)).
+% Completar instanciación soportada y justificar.
+% Tablero: Es reversible si NuevoTab, Fila y Columna están instanciados.
+% Fila: Es reversible si Tablero y NuevoTab están instanciados. Pincha en golpear por el > 1.
+% Columna: Es reversible si Tablero y NuevoTab están instanciados. Pincha en golpear por el > 1. 
+% Resultado: Es reversible si al menos Tablero, Fila y Columna o Tablero y NuevoTab lo están.
+% Tablero: Es reversible si NuevoTab, Fila y Columna están instanciados.
+atacar(Tablero, Fila, Columna, 'agua', Tablero) :- esAgua(Tablero, Fila, Columna).
 atacar(Tablero, Fila, Columna, 'hundido', NuevoTab) :- 
-        golpear(Tablero, Fila, Columna, NuevoTab), contenido(Tablero, Fila, Columna, BarcoAHundir), contenido(NuevoTab, Fila, Columna, Agua),
-        BarcoAHundir \== Agua, forall(adyacenteEnRango(Tablero, Fila, Columna, FilaAdy, ColumnaAdy), not(esBarco(NuevoTab, FilaAdy, ColumnaAdy))).
+        golpear(Tablero, Fila, Columna, NuevoTab), esBarco(Tablero, Fila, Columna), esAgua(NuevoTab, Fila, Columna),
+        forall(adyacenteEnRango(Tablero, Fila, Columna, FilaAdy, ColumnaAdy), esAgua(NuevoTab, FilaAdy, ColumnaAdy)).
 atacar(Tablero, Fila, Columna, 'tocado', NuevoTab) :- 
-        golpear(Tablero, Fila, Columna, NuevoTab), contenido(Tablero, Fila, Columna, BarcoATocar), contenido(NuevoTab, Fila, Columna, Agua),
-        BarcoATocar \== Agua, adyacenteEnRango(Tablero, Fila, Columna, FilaAdy, ColumnaAdy), esBarco(Tablero, FilaAdy, ColumnaAdy).
+        golpear(Tablero, Fila, Columna, NuevoTab), esBarco(Tablero, Fila, Columna), esAgua(NuevoTab, Fila, Columna),
+        adyacenteEnRango(Tablero, Fila, Columna, FilaAdy, ColumnaAdy), esBarco(Tablero, FilaAdy, ColumnaAdy).
 
 %esBarco(+Tablero, ?Fila, ?Columna)
 esBarco(Tablero, Fila, Columna) :- contenido(Tablero, Fila, Columna, o).
+
+%esAgua(+Tablero, ?Fila, ?Columna)
+esAgua(Tablero, Fila, Columna) :- contenido(Tablero, Fila, Columna, ~).
 
 %------------------Tests:------------------%
 

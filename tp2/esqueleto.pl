@@ -95,14 +95,14 @@ golpearFila([_ | Elementos], 1, [~ | Elementos]).
 golpearFila([Elemento | Elementos], NumColumna, [Elemento | FilaGolpeada]) :- 
         NumColumna > 1, ProximaColumna is NumColumna - 1, golpearFila(Elementos, ProximaColumna, FilaGolpeada).
 
-%%% Ejercicio 7 y 8 %%%
+%%% Ejercicios 7 y 8 %%%
 %atacar(+Tablero, +Fila, +Columna, -Resultado, -NuevoTab)
 % Completar instanciación soportada y justificar.
 % Tablero: Es reversible si NuevoTab, Fila y Columna están instanciados.
 % Fila: Es reversible si Tablero y NuevoTab están instanciados. Pincha en golpear por el > 1.
 % Columna: Es reversible si Tablero y NuevoTab están instanciados. Pincha en golpear por el > 1. 
-% Resultado: Es reversible si al menos Tablero, Fila y Columna o Tablero y NuevoTab lo están.
-% Tablero: Es reversible si NuevoTab, Fila y Columna están instanciados.
+% Resultado: Es reversible si al menos Tablero, Fila y Columna, o Tablero y NuevoTab lo están.
+% NuevoTab: Es reversible si Tablero, Fila y Columna están instanciados.
 atacar(Tablero, Fila, Columna, 'agua', Tablero) :- esAgua(Tablero, Fila, Columna).
 atacar(Tablero, Fila, Columna, 'hundido', NuevoTab) :- 
         golpear(Tablero, Fila, Columna, NuevoTab), esBarco(Tablero, Fila, Columna), esAgua(NuevoTab, Fila, Columna),

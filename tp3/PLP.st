@@ -1,1 +1,722 @@
-﻿Object subclass: #Direction	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!Direction commentStamp: '<historical>' prior: 0!Direction!!Direction methodsFor: 'evaluating' stamp: 'PLP 10/9/2017 17:52'!nextFrom: puntoDeOrigen"Dado un punto, devuelve el resultado de moverse en la direccion correspondiente. "^self class nextFrom: puntoDeOrigen ! !"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!Direction class	instanceVariableNames: ''!!Direction class methodsFor: 'instance-creation' stamp: 'PLP 10/9/2017 17:53'!north	^North new! !!Direction class methodsFor: 'instance-creation' stamp: 'PLP 10/9/2017 17:52'!south	^South new! !!Direction class methodsFor: 'instance-creation' stamp: 'PLP 10/9/2017 17:53'!east	^East new! !!Direction class methodsFor: 'instance-creation' stamp: 'PLP 10/9/2017 17:59'!southwest	^Southwest new! !!Direction class methodsFor: 'instance-creation' stamp: 'PLP 10/9/2017 17:53'!west	^West new! !!Direction class methodsFor: 'instance-creation' stamp: 'PLP 10/9/2017 17:59'!northwest	^Northwest new! !!Direction class methodsFor: 'instance-creation' stamp: 'PLP 10/9/2017 17:59'!northeast	^Northeast new! !!Direction class methodsFor: 'instance-creation' stamp: 'PLP 10/9/2017 17:59'!southeast	^Southeast new! !!Direction class methodsFor: 'evaluating' stamp: 'PLP 10/9/2017 17:54'!nextFrom: puntoDeOrigen	^ self subclassResponsibility ! !Direction subclass: #East	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!East commentStamp: '<historical>' prior: 0!East!"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!East class	instanceVariableNames: ''!!East class methodsFor: 'evaluating' stamp: 'PLP 10/14/2017 23:32'!nextFrom: puntoDeOrigen	^(puntoDeOrigen x + 1)@(puntoDeOrigen y)! !Object subclass: #Game	instanceVariableNames: 'terrain gameTeams currentTeamIndex'	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!Game commentStamp: 'EmanuelLamela 11/9/2017 15:43' prior: 0!I represent the state of a Game!!Game methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/7/2017 20:47'!setTerrain: aTerrain 	terrain := aTerrain.! !!Game methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/8/2017 01:23'!currentTeam	^gameTeams at: currentTeamIndex! !!Game methodsFor: 'as yet unclassified' stamp: 'EmanuelLamela 11/9/2017 16:17'!registerTeam: aString playerLocations: aCollection	"Register a team to participate in the game"	| charactersCollection teamClasses teamLocations teamSize index |	teamLocations := aCollection		select: [ :pointOrcharacter | pointOrcharacter isKindOf: Point ].	teamClasses := aCollection		select: [ :pointOrcharacter | pointOrcharacter isKindOf: GameCharacter class ].	teamSize := teamClasses size.	index := 1.	charactersCollection := OrderedCollection new.	teamSize		timesRepeat: [ charactersCollection				add:					((teamClasses at: index)						new: terrain						with: (teamLocations at: index)						and: aString).			index := index + 1 ].	gameTeams		ifNil: [ gameTeams := OrderedCollection new.			currentTeamIndex := 1 ].	gameTeams add: (GameTeam new: aString with: charactersCollection)! !!Game methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/8/2017 03:14'!moveCharacter: anInteger to: aDirection steps: anInteger2	| gameCharacter |	gameCharacter := self currentTeam members at: anInteger.	gameCharacter move: anInteger2 to: aDirection.	self pass! !!Game methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/8/2017 12:45'!currentWinners	| teamsPoints winnersTeams winnersScore |	teamsPoints := gameTeams		groupedBy: [ :gameTeam | 			(terrain getMapObjects				select:					[ :mapObject | (mapObject isKindOf: Flag) and: [ mapObject team = gameTeam name ] ])				size ].	winnersTeams := OrderedCollection new.	winnersScore := teamsPoints keys max.	winnersScore > 0		ifTrue: [ winnersTeams := teamsPoints at: winnersScore ].	^ winnersTeams collect: [ :winnerTeam | winnerTeam name ]! !!Game methodsFor: 'handling' stamp: 'EmanuelLamela 11/9/2017 16:16'!pass	"Pass the turn to the next team"	currentTeamIndex := currentTeamIndex \\ gameTeams size + 1! !!Game methodsFor: 'initialization' stamp: 'JuanCruz 11/8/2017 01:30'!setCurrentTeamIndex: aInteger	currentTeamIndex  := aInteger! !"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!Game class	instanceVariableNames: 'currentTeamIndex gameTeams terrain'!!Game class methodsFor: 'initialization' stamp: 'JuanCruz 11/8/2017 01:54'!newX: anInteger Y: anInteger2 trapLocations: tCollection flagLocations: fCollection	| aGame aTerrain |	aGame := self new.	aGame setCurrentTeamIndex: 0.	aTerrain := Terrain dimX: anInteger dimY: anInteger2.	tCollection do: [:trapLocation|aTerrain at: trapLocation put: Trap new].	fCollection do: [:flagLocation|aTerrain at: flagLocation put: Flag new].	aGame setTerrain: aTerrain.	^ aGame! !Object subclass: #GameCharacter	instanceVariableNames: 'terrain team canMove canHeal location'	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!GameCharacter commentStamp: 'EmanuelLamela 11/9/2017 15:54' prior: 0!I represent an abstract Game Character and its possible actionsEach type of character can perform certain actions when interacting with other entities!!GameCharacter methodsFor: 'action' stamp: 'JuanCruz 11/4/2017 21:08'!heal: aGameCharacter	self heal: aGameCharacter.! !!GameCharacter methodsFor: 'protocol' stamp: 'EmanuelLamela 11/9/2017 15:47'!renable	"Allows the character to perform its designated actions"	self renable.! !!GameCharacter methodsFor: 'protocol' stamp: 'EmanuelLamela 11/9/2017 15:47'!disable	"Prevents character for performing any actions"	self setCanMove: false.	self setCanHeal: false.! !!GameCharacter methodsFor: 'accessing' stamp: 'JuanCruz 11/4/2017 16:54'!team	^team! !!GameCharacter methodsFor: 'path commands' stamp: 'EmanuelLamela 11/9/2017 15:50'!moveTo: aDirection"Moves the character 1 position towards aDirection if the terrain allows it"| content |(self canMoveTo: aDirection) ifFalse: [ ^self].terrain remove: self.location := aDirection nextFrom: location.content := terrain at: location.terrain at: location put: self.content ifNil: [self interactWithAllElements] ifNotNil: [ self disable ].^self! !!GameCharacter methodsFor: 'initialization' stamp: 'JuanCruz 11/4/2017 20:55'!setCanMove: aBool 	canMove := aBool.! !!GameCharacter methodsFor: 'initialization' stamp: 'JuanCruz 11/7/2017 20:07'!setLocation: aPoint	location := aPoint! !!GameCharacter methodsFor: 'initialization' stamp: 'JuanCruz 11/4/2017 21:28'!setCanHeal: aBool 	canHeal := aBool.! !!GameCharacter methodsFor: 'initialization' stamp: 'JuanCruz 11/7/2017 18:08'!setTerrain: aTerrain	terrain := aTerrain.! !!GameCharacter methodsFor: 'initialization' stamp: 'JuanCruz 11/4/2017 16:51'!setTeam: aString	team := aString! !!GameCharacter methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/7/2017 19:02'!isObjective	self isObjective.! !!GameCharacter methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/7/2017 20:02'!interactWithAllElements	(terrain elementsAround: self satisfying: [:object | self target value: object ]) collect: [:objectSatisfying | self action value: objectSatisfying ].! !!GameCharacter methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/4/2017 21:07'!healedBy: aGameCharacter	aGameCharacter heal: self.! !!GameCharacter methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/4/2017 19:42'!selectSeenFrom: aCollection	^aCollection select: [:aMapObject | (aMapObject isVisible) or: (self class = Engineer)]! !!GameCharacter methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/7/2017 19:28'!action	self action.! !!GameCharacter methodsFor: 'as yet unclassified' stamp: 'EmanuelLamela 11/9/2017 15:51'!move: anInteger to: aDirection	"Moves the character in aDirection a number of times as long as terrain allows it"	anInteger timesRepeat: [ self moveTo: aDirection ]! !!GameCharacter methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/7/2017 20:23'!location	^ location! !!GameCharacter methodsFor: 'movement' stamp: 'JuanCruz 11/7/2017 20:08'!canMoveTo: aDirection 	| movingPosition |	movingPosition := terrain getPositionFrom: self movingTo: aDirection.	^canMove and: ((terrain contains: movingPosition) and: (terrain elementsAround: self satisfying: [:mapObject | (terrain getPositionFrom: mapObject)=movingPosition])isEmpty)! !!GameCharacter methodsFor: 'movement' stamp: 'JuanCruz 11/4/2017 20:48'!canMove	^canMove.! !!GameCharacter methodsFor: 'testing' stamp: 'JuanCruz 11/7/2017 19:03'!target	^[:object | self isObjective: object]! !!GameCharacter methodsFor: 'testing' stamp: 'JuanCruz 11/4/2017 21:27'!isMedic	self isMedic! !!GameCharacter methodsFor: 'testing' stamp: 'JuanCruz 11/4/2017 21:36'!canHeal	^canHeal.! !!GameCharacter methodsFor: 'testing' stamp: 'JuanCruz 11/4/2017 19:31'!isVisible	^true! !"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!GameCharacter class	instanceVariableNames: 'canMove'!!GameCharacter class methodsFor: 'creation' stamp: 'JuanCruz 11/7/2017 20:22'!new: aTerrain with: aPoint and: aString	| aGameCharacter |	aGameCharacter := self new.	aGameCharacter setTeam: aString.	aGameCharacter setCanMove: true.	aGameCharacter setCanHeal: aGameCharacter isMedic.	aGameCharacter setLocation: aPoint.	aGameCharacter setTerrain: (aTerrain at: aPoint put: aGameCharacter ).	^ aGameCharacter! !GameCharacter subclass: #Engineer	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!Engineer commentStamp: 'EmanuelLamela 11/9/2017 15:52' prior: 0!I represent an Engineer character which can remove traps!!Engineer methodsFor: 'action' stamp: 'JuanCruz 11/4/2017 21:39'!heal: aGameCharacter	Error signal.! !!Engineer methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/7/2017 19:54'!action	^[:aTrap | terrain remove: aTrap ]! !!Engineer methodsFor: 'testing' stamp: 'JuanCruz 11/4/2017 21:27'!isMedic	^false! !!Engineer methodsFor: 'testing' stamp: 'JuanCruz 11/7/2017 19:52'!isObjective: aMapObject	^aMapObject isKindOf: Trap! !!Engineer methodsFor: 'protocol' stamp: 'JuanCruz 11/4/2017 21:50'!renable	self setCanMove: true.! !GameCharacter subclass: #Explorer	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!Explorer commentStamp: 'EmanuelLamela 11/9/2017 15:53' prior: 0!I represent an Explorer character which can claim a Flag!!Explorer methodsFor: 'protocol' stamp: 'JuanCruz 11/4/2017 21:50'!renable	self setCanMove: true.! !!Explorer methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/7/2017 19:57'!action	^[:aFlag | aFlag team: self team] ! !!Explorer methodsFor: 'testing' stamp: 'JuanCruz 11/4/2017 21:27'!isMedic	^false! !!Explorer methodsFor: 'testing' stamp: 'JuanCruz 11/7/2017 19:52'!isObjective: aMapObject	^aMapObject isKindOf: Flag! !!Explorer methodsFor: 'action' stamp: 'JuanCruz 11/4/2017 21:25'!heal: aGameCharacter	Error signal.! !Object subclass: #GameTeam	instanceVariableNames: 'team members'	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!GameTeam commentStamp: 'EmanuelLamela 11/9/2017 15:57' prior: 0!I represent a team that can participate in a GameThe Game Team is identified through a name!!GameTeam methodsFor: 'initialization' stamp: 'JuanCruz 11/7/2017 20:40'!setMembers: aCollection	members := aCollection! !!GameTeam methodsFor: 'initialization' stamp: 'JuanCruz 11/7/2017 20:39'!setTeam: aString	team := aString ! !!GameTeam methodsFor: 'accessing' stamp: 'JuanCruz 11/7/2017 20:40'!members	^ members! !!GameTeam methodsFor: 'accessing' stamp: 'JuanCruz 11/8/2017 02:53'!team	^team! !!GameTeam methodsFor: 'accessing' stamp: 'JuanCruz 11/7/2017 20:41'!name	^ team! !"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!GameTeam class	instanceVariableNames: 'team members'!!GameTeam class methodsFor: 'initialization' stamp: 'JuanCruz 11/7/2017 20:39'!new: aString with: aCollection	| aGameTeam |	aGameTeam := self new. 	aGameTeam setTeam: aString.	aGameTeam setMembers: aCollection.	^ aGameTeam! !Object subclass: #MapObject	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!MapObject commentStamp: 'EmanuelLamela 11/9/2017 16:01' prior: 0!I represent an abstract item which can be placed on a Game mapDifferent Map Objects can hold a visible object or none!!MapObject methodsFor: 'evaluation' stamp: 'JuanCruz 11/4/2017 12:50'!value	^ self value.! !!MapObject methodsFor: 'evaluation' stamp: 'JuanCruz 11/4/2017 16:44'!getVisibleObject	^self getVisibleObject! !!MapObject methodsFor: 'evaluation' stamp: 'EmanuelLamela 11/9/2017 16:00'!isVisible 	"Describes whether it's visible"	^ self isVisible. ! !MapObject subclass: #Flag	instanceVariableNames: 'team'	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!Flag commentStamp: 'EmanuelLamela 11/9/2017 16:02' prior: 0!I represent a Flag object that can be claimed by 1 Game Team at a time!!Flag methodsFor: 'evaluation' stamp: 'JuanCruz 11/4/2017 16:44'!getVisibleObject	^self.! !!Flag methodsFor: 'evaluation' stamp: 'JuanCruz 11/4/2017 12:44'!isVisible	^true.! !!Flag methodsFor: 'evaluation' stamp: 'JuanCruz 11/4/2017 12:36'!value	^self.! !!Flag methodsFor: 'evaluation' stamp: 'JuanCruz 11/4/2017 12:46'!team: aString	team := aString.! !!Flag methodsFor: 'evaluation' stamp: 'JuanCruz 11/4/2017 12:47'!team	^ team! !GameCharacter subclass: #Medic	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!Medic commentStamp: 'EmanuelLamela 11/9/2017 15:55' prior: 0!I represent a Medic character which can heal other Game Characters!!Medic methodsFor: 'testing' stamp: 'JuanCruz 11/4/2017 21:34'!isMedic	^true! !!Medic methodsFor: 'testing' stamp: 'JuanCruz 11/7/2017 19:24'!isObjective: aMapObject	^(aMapObject isKindOf: GameCharacter) and: ([(aMapObject canMove) not and: (self team = aMapObject team)])! !!Medic methodsFor: 'action' stamp: 'EmanuelLamela 11/9/2017 14:49'!heal: aGameCharacter	aGameCharacter ~= self ifTrue: aGameCharacter renable ifFalse: [ Error signal ]! !!Medic methodsFor: 'protocol' stamp: 'JuanCruz 11/4/2017 21:50'!renable	self setCanMove: true.	self setCanHeal: true.! !!Medic methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/7/2017 19:56'!action	^[:aTeammate | self heal: aTeammate].! !Direction subclass: #North	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!North commentStamp: '<historical>' prior: 0!North!"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!North class	instanceVariableNames: ''!!North class methodsFor: 'evaluating' stamp: 'PLP 10/14/2017 23:33'!nextFrom: puntoDeOrigen	^(puntoDeOrigen x)@(puntoDeOrigen y + 1)! !Direction subclass: #Northeast	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!Northeast commentStamp: '<historical>' prior: 0!Northeast!"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!Northeast class	instanceVariableNames: ''!!Northeast class methodsFor: 'evaluating' stamp: 'PLP 10/9/2017 17:57'!nextFrom: puntoDeOrigen	^(puntoDeOrigen x + 1)@(puntoDeOrigen y + 1)! !Direction subclass: #Northwest	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!Northwest commentStamp: '<historical>' prior: 0!Northwest!"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!Northwest class	instanceVariableNames: ''!!Northwest class methodsFor: 'evaluating' stamp: 'PLP 10/9/2017 17:57'!nextFrom: puntoDeOrigen	^(puntoDeOrigen x - 1)@(puntoDeOrigen y + 1)! !Direction subclass: #South	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!South commentStamp: '<historical>' prior: 0!South!"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!South class	instanceVariableNames: ''!!South class methodsFor: 'evaluating' stamp: 'PLP 10/14/2017 23:33'!nextFrom: puntoDeOrigen	^(puntoDeOrigen x)@(puntoDeOrigen y - 1)! !Direction subclass: #Southeast	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!Southeast commentStamp: '<historical>' prior: 0!Southeast!"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!Southeast class	instanceVariableNames: ''!!Southeast class methodsFor: 'evaluating' stamp: 'PLP 10/9/2017 17:58'!nextFrom: puntoDeOrigen	^(puntoDeOrigen x + 1)@(puntoDeOrigen y - 1)! !Direction subclass: #Southwest	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!Southwest commentStamp: '<historical>' prior: 0!Southwest!"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!Southwest class	instanceVariableNames: ''!!Southwest class methodsFor: 'evaluating' stamp: 'PLP 10/9/2017 17:58'!nextFrom: puntoDeOrigen	^(puntoDeOrigen x - 1)@(puntoDeOrigen y - 1)! !Object subclass: #Terrain	instanceVariableNames: 'dimX dimY mapObjects'	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!Terrain commentStamp: 'EmanuelLamela 11/9/2017 16:05' prior: 0!I represent the terrain of the Game which delimits the playable area and over which different Map Objects can be placed!!Terrain methodsFor: 'removing' stamp: 'EmanuelLamela 11/9/2017 16:11'!remove: aMapObject	"Removes aMapObject if present in the terrain" 	mapObjects removeKey: ( self getPositionFrom: aMapObject ) ifAbsent: nil! !!Terrain methodsFor: 'accessing' stamp: 'EmanuelLamela 11/9/2017 16:09'!elementsAround: aGameCharacter satisfying: aBlock	"Visible objects in the adyacents positions to aGameCharacter that satisfy a condition"	^(self elementsAround: aGameCharacter) select: aBlock.! !!Terrain methodsFor: 'accessing' stamp: 'JuanCruz 11/4/2017 14:30'!getDimX	^dimX! !!Terrain methodsFor: 'accessing' stamp: 'JuanCruz 11/7/2017 20:23'!getPositionFrom: aObject movingTo: aDirection	| aPosition |	aPosition := self getPositionFrom: aObject .	^ aDirection nextFrom: aPosition.! !!Terrain methodsFor: 'accessing' stamp: 'EmanuelLamela 11/9/2017 15:23'!getPositionFrom: aObject	^mapObjects keyAtValue: aObject ifAbsent: nil.! !!Terrain methodsFor: 'accessing' stamp: 'JuanCruz 11/4/2017 14:30'!getDimY	^dimY! !!Terrain methodsFor: 'accessing' stamp: 'EmanuelLamela 11/9/2017 16:08'!elementsAround: aGameCharacter	"Visible objects in the adyacents positions to aGameCharacter"	| neighborsPositions neighborsObjects |	neighborsPositions := (self getPositionFrom: aGameCharacter)		eightNeighbors.	neighborsObjects := neighborsPositions		collect: [ :neighborPosition | self at: neighborPosition ].	^ aGameCharacter		selectSeenFrom: (neighborsObjects reject: [ :neighborObject | neighborObject isNil ])! !!Terrain methodsFor: 'accessing' stamp: 'EmanuelLamela 11/9/2017 15:23'!at: aPoint	^mapObjects at: aPoint ifAbsent: nil! !!Terrain methodsFor: 'setting' stamp: 'EmanuelLamela 11/9/2017 15:23'!getMapObjects	^mapObjects! !!Terrain methodsFor: 'setting' stamp: 'JuanCruz 11/4/2017 14:22'!setDimY: anInteger	dimY := anInteger .! !!Terrain methodsFor: 'setting' stamp: 'EmanuelLamela 11/9/2017 15:23'!setMapObjects: aDictionary	mapObjects := aDictionary .! !!Terrain methodsFor: 'setting' stamp: 'JuanCruz 11/4/2017 14:22'!setDimX: anInteger	dimX := anInteger .! !!Terrain methodsFor: 'comparing' stamp: 'EmanuelLamela 11/9/2017 16:06'!contains: aPoint 	"Whether the values of aPoint fit in the dimensions of the terrain"	^aPoint <= ((self getDimX)@(self getDimY)) and:[aPoint > (0@0)].! !!Terrain methodsFor: 'inserting' stamp: 'EmanuelLamela 11/9/2017 16:06'!at: aPoint put: aMapObject	"Puts a MapObject in aPoint if the said point is contained in the terrain"	(self contains: aPoint) ifTrue: (mapObjects at: aPoint put: aMapObject) ifFalse: [Error signal].! !!Terrain methodsFor: 'viewing' stamp: 'EmanuelLamela 11/9/2017 16:12'!visibleAt: aPoint	"Returns the visible object on the map if any is present, else nil"	| aMapObject |	aMapObject := mapObjects at: aPoint ifAbsent: nil.	^aMapObject ifNil: nil ifNotNil: [aMapObject getVisibleObject]! !!Terrain methodsFor: 'enumerating' stamp: 'EmanuelLamela 11/9/2017 15:23'!select: aBlock	^mapObjects select: aBlock ! !"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!Terrain class	instanceVariableNames: 'dimX dimY'!!Terrain class methodsFor: 'creation' stamp: 'JuanCruz 11/4/2017 16:43'!dimX: anInteger dimY: anInteger2 	| aTerrain |	aTerrain := self new.	aTerrain setDimX: anInteger.	aTerrain setDimY: anInteger2.	aTerrain setMapObjects: Dictionary new.	^aTerrain .! !TestCase subclass: #TestsEx1	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!TestsEx1 methodsFor: 'testing' stamp: 'PLP 10/12/2017 11:54'!test1_1_canCreateTrapsAndFlags	self assert: (Flag new isKindOf: Flag).	self assert: (Trap new isKindOf: Trap).! !!TestsEx1 methodsFor: 'testing' stamp: 'PLP 10/15/2017 05:52'!test1_3_flagTeams	| flag1 flag2 flag3 |	flag1 := Flag new.	flag2 := Flag new team: #azul; yourself.	flag3 := Flag new.		self assert: flag1 team isNil.	flag1 team: #azul.	self assert: flag1 team isNil not.	flag3 team: #rojo.	self assert: flag1 team equals: flag2 team.	self assert: flag3 team equals: #rojo.	flag2 team: flag3 team.	self assert: flag2 team equals: #rojo.	! !!TestsEx1 methodsFor: 'testing' stamp: 'PLP 10/12/2017 14:26'!test1_2_visibilityAndValue	| flag trap |	flag := Flag new.	trap := Trap new.	self assert: (flag isVisible).	self assert: (trap isVisible not).	self assert: (flag value) equals: flag.	self assert: (trap value isNil).! !"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!TestsEx1 class	instanceVariableNames: 'isVisible'!TestCase subclass: #TestsEx2	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!TestsEx2 methodsFor: 'testing' stamp: 'JuanCruz 11/4/2017 13:34'!test2_1_pointsInTerrain	"Verifica la presencia o ausencia de puntos en el terreno"	| terrain |	terrain := Terrain dimX: 5 dimY: 4.	self assert: (terrain contains: (1@1)).	self assert: (terrain contains: (5@2)).	self assert: (terrain contains: (5@4)).	self assert: (terrain contains: (4@5)) not.	self assert: (terrain contains: (2@7)) not.	self assert: (terrain contains: (0@1)) not.! !!TestsEx2 methodsFor: 'testing' stamp: 'PLP 10/13/2017 09:48'!test2_4_remove	"Verifica la presencia o ausencia de puntos en el terreno"	| terrain flag |	terrain := Terrain dimX: 5 dimY: 4.	flag := Flag new.	terrain at: (2@1) put: flag; at: (2@2) put: Flag new; at: (4@4) put: Flag new.	self assert: (terrain at: (2@1)) isNotNil.		terrain remove: flag.		self assert: (terrain at: (2@1)) isNil.	self assert: (terrain at: (2@2)) isNotNil.	self assert: (terrain at: (2@4)) isNil.	self assert: (terrain at: (4@4)) isNotNil.		terrain remove: flag.	self assert: (terrain at: (2@1)) isNil.	self assert: (terrain at: (2@2)) isNotNil.	self assert: (terrain at: (2@4)) isNil.	self assert: (terrain at: (4@4)) isNotNil.	! !!TestsEx2 methodsFor: 'testing' stamp: 'PLP 10/12/2017 14:48'!test2_2_gameElementsInTerrain	"Verifica la presencia o ausencia de puntos en el terreno"	| terrain |	terrain := Terrain dimX: 5 dimY: 4.	terrain at: (2@1) put: Flag new; at: (3@2) put: Flag new; at: (4@4) put: Flag new.	terrain at: (2@2) put: Trap new; at: (3@1) put: Trap new; at: (5@4) put: Trap new.	self assert: ((terrain at: (2@3)) isNil).	self assert: ((terrain at: (2@1)) isNotNil).	self assert: ((terrain visibleAt: (2@1)) isNotNil).	self assert: ((terrain at: (3@1)) isNotNil).	self assert: ((terrain visibleAt: (3@1)) isNil).	self assert: ((terrain at: (5@4)) isVisible not).	self assert: ((terrain at: (4@4)) team isNil).! !!TestsEx2 methodsFor: 'testing' stamp: 'PLP 10/12/2017 14:58'!test2_3_select	"Verifica la presencia o ausencia de puntos en el terreno"	| terrain |	terrain := Terrain dimX: 5 dimY: 4.	terrain at: (2@1) put: Flag new; at: (3@2) put: Flag new; at: (4@4) put: Flag new.	terrain at: (2@2) put: Trap new; at: (3@1) put: Trap new; at: (5@4) put: Trap new.	self assert: ((terrain select: [:x| x isNotNil]) size) equals: 6.	self assert: ((terrain select: [:x| x isVisible]) size) equals: 3.! !TestCase subclass: #TestsEx3	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!TestsEx3 methodsFor: 'testing' stamp: 'JuanCruz 11/4/2017 17:27'!test3_1_gameCharacterCreation	| terrain bob dora doc |	terrain := self class terrain.	dora := Explorer new: terrain with: (2@3) and: #verde.	bob := Engineer new: terrain with: (1@2) and: #verde.	doc := Medic new: terrain with: (4@2) and: #verde.		self assert: dora team equals: bob team.	self assert: doc team equals: #verde.	self assert: (terrain at: (1@2)) equals: bob.	self should: [ Explorer new: terrain with: (2@5) and: #verde ] raise: Exception.	self assert: dora canHeal not.	self assert: bob canHeal not.	self assert: doc canHeal.! !!TestsEx3 methodsFor: 'testing' stamp: 'PLP 10/12/2017 16:00'!test3_4_elementsAroundSatisfying	| terrain bob dora doc |	terrain := self class terrain.	dora := Explorer new: terrain with: (2@3) and: #verde.	bob := Engineer new: terrain with: (1@2) and: #verde.		self assert: (terrain elementsAround: dora satisfying: [:x | x isVisible]) size equals: 2.	self assert: (terrain elementsAround: bob satisfying: [:x | x isVisible]) size equals: 2.		doc := Medic new: terrain with: (1@1) and: #verde.		self assert: (terrain elementsAround: doc satisfying: [:x | x ~= 0]) size equals: 2.	self assert: (terrain elementsAround: bob satisfying: [:x | x ~= #verde]) size equals: 4.	self assert: (terrain elementsAround: bob satisfying: [:x | x respondsTo: #team]) size equals: 3.	self assert: (terrain elementsAround: doc satisfying: [:x | x == bob]) size equals: 1.! !!TestsEx3 methodsFor: 'testing' stamp: 'PLP 10/12/2017 15:50'!test3_3_elementsAround	"El mensaje elementsAround: debe devolver, dado un personaje, la colección de elementos adyacentes 	al personaje que este puede ver. Recordar que solo los ingenieros pueden ver las trampas."	| terrain bob dora doc |	terrain := self class terrain.	dora := Explorer new: terrain with: (2@3) and: #verde.	bob := Engineer new: terrain with: (1@2) and: #verde.	doc := Medic new: terrain with: (4@2) and: #verde.		self assert: (terrain elementsAround: dora) size equals: 2.	self assert: (terrain elementsAround: doc) size equals: 1.	self assert: (terrain elementsAround: bob) size equals: 3.! !!TestsEx3 methodsFor: 'testing' stamp: 'PLP 10/12/2017 15:29'!test3_2_selectSeen	"Esto testea el mensaje selectSeenFrom:, que dada una colección filtra los elementos que el receptor puede ver."	| terrain bob dora doc col |	terrain := self class terrain.	dora := Explorer new: terrain with: (2@3) and: #verde.	bob := Engineer new: terrain with: (1@2) and: #verde.	doc := Medic new: terrain with: (4@2) and: #verde.		col := OrderedCollection with: Flag new with: dora with: Trap new with: bob with: Trap new with: doc.		self assert: (dora selectSeenFrom: col) size equals: 4.	self assert: (bob selectSeenFrom: col) size equals: 6.	self assert: (doc selectSeenFrom: col) size equals: 4.	self assert: ((bob selectSeenFrom: col) anySatisfy: [:x | x isVisible not]).	self assert: ((doc selectSeenFrom: col) allSatisfy: [:x | x isVisible]).! !"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!TestsEx3 class	instanceVariableNames: ''!!TestsEx3 class methodsFor: 'initializing' stamp: 'PLP 10/12/2017 15:06'!terrain	| terrain |	terrain := Terrain dimX: 5 dimY: 4.	terrain at: (2@1) put: Flag new; at: (3@2) put: Flag new; at: (4@4) put: Flag new.	terrain at: (2@2) put: Trap new; at: (3@1) put: Trap new; at: (5@4) put: Trap new.	^terrain	! !TestCase subclass: #TestsEx4	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!TestsEx4 methodsFor: 'testing' stamp: 'PLP 10/13/2017 09:37'!test4_1_mobility| terrain bob dora doc |	terrain := self class terrain.	dora := Explorer new: terrain with: (2@3) and: #verde.	bob := Engineer new: terrain with: (2@1) and: #verde.	doc := Medic new: terrain with: (3@4) and: #verde.		self assert: bob canMove.	self assert: doc canMove.	self assert: dora canMove.		dora disable.		self assert: dora canMove not.	self should: [ dora healedBy: bob ] raise: Exception.	self assert: dora canMove not.	self assert: doc canHeal.		dora healedBy: doc.		self assert: dora canMove.		doc disable.		self assert: doc canHeal not.	self assert: doc canMove not.	self should: [ doc healedBy: doc ] raise: Exception.! !!TestsEx4 methodsFor: 'testing' stamp: 'PLP 10/13/2017 10:38'!test4_5_interactWithAllElements| terrain bob dora doc |	terrain := self class terrain.	dora := Explorer new: terrain with: (2@3) and: #verde.	bob := Engineer new: terrain with: (3@2) and: #verde.	doc := Medic new: terrain with: (3@4) and: #verde.		dora disable.		self assert: ((terrain at: (3@3)) isKindOf: Trap).	self assert: ((terrain at: (4@2)) isKindOf: Trap).	self assert: (terrain at: (2@2)) team isNil.	self assert: dora canMove not.		bob interactWithAllElements.	doc interactWithAllElements.	dora interactWithAllElements.		self assert: (terrain at: (3@3)) isNil.	self assert: (terrain at: (4@2)) isNil.	self assert: (terrain at: (2@2)) team equals: #verde.	self assert: dora canMove.	! !!TestsEx4 methodsFor: 'testing' stamp: 'PLP 10/13/2017 09:51'!test4_2_directions| terrain bob dora doc |	terrain := self class terrain.	dora := Explorer new: terrain with: (2@3) and: #verde.	bob := Engineer new: terrain with: (2@1) and: #verde.	doc := Medic new: terrain with: (3@4) and: #verde.		self assert: (bob canMoveTo: Direction northeast).	self assert: (doc canMoveTo: Direction west).	self assert: (dora canMoveTo: Direction east).	self assert: (dora canMoveTo: Direction south) not.	self assert: (dora canMoveTo: Direction northeast) not.	self assert: (doc canMoveTo: Direction north) not.		bob disable.		self assert: (bob canMoveTo: Direction northeast) not.! !!TestsEx4 methodsFor: 'testing' stamp: 'PLP 10/15/2017 02:04'!test4_6_moving	"moveTo: mueve el personaje un paso en la dirección indicada, si es posible.	move:to: mueve el personaje una cantidad dada de pasos en la dirección indicada, mientras sea posible."	| terrain bob dora doc dean |	terrain := self class terrain.	dora := Explorer new: terrain with: 2 @ 3 and: #verde.	dean := Explorer new: terrain with: 2 @ 4 and: #rojo.	bob := Engineer new: terrain with: 2 @ 1 and: #verde.	doc := Medic new: terrain with: 3 @ 4 and: #verde.		self assert: ((terrain at: 3 @ 3) isKindOf: Trap).	self assert: (dean canMoveTo: Direction southeast).		dora moveTo: Direction east.		self assert: dora location equals: 3 @ 3.	self assert: (terrain at: 3 @ 3) equals: dora.	self assert: dora canMove not.	dora moveTo: Direction south.	self assert: dora location equals: 3 @ 3.	self assert: (dean canMoveTo: Direction southeast) not.	"No se puede mover hacia el sudeste porque está Dora."		dean moveTo: Direction southeast.		self assert: dean location equals: 2 @ 4.		doc moveTo: Direction east.		self assert: dora canMove.	"Doc la curó al pasar a su lado."			dean moveTo: Direction south.		self assert: dean location equals: 2 @ 3.	self assert: (terrain at: 4 @ 3) team isNil.	self assert: (terrain at: 2 @ 2) team equals: #rojo.		dora moveTo: Direction south.	self assert: dora location equals: 3 @ 2.	self assert: (terrain at: 4 @ 3) team equals: #verde.	self assert: (terrain at: 2 @ 2) team equals: #verde.		dean moveTo: Direction west.		self assert: (terrain at: 4 @ 3) team equals: #verde.	self assert: (terrain at: 2 @ 2) team equals: #rojo.	self assert: ((terrain at: 4 @ 2) isKindOf: Trap).		bob move: 3 to: Direction east.		self assert: bob location equals: 4 @ 1.	"Se movió 2 lugares y se chocó con la bandera."	self assert: ((terrain at: 4 @ 2) isNil).! !!TestsEx4 methodsFor: 'testing' stamp: 'PLP 10/13/2017 10:30'!test4_4_actions| terrain bob dora doc flag trap |	terrain := self class terrain.	dora := Explorer new: terrain with: (2@3) and: #verde.	bob := Engineer new: terrain with: (2@1) and: #verde.	doc := Medic new: terrain with: (3@4) and: #verde.	flag := terrain at: (2@2).	trap := terrain at: (1@2).		dora disable.		self assert: (trap isKindOf: Trap).	self assert: flag team isNil.	self assert: dora canMove not.		bob action value: trap.	doc action value: dora.	dora action value: flag.		self assert: (terrain at: (1@2)) isNil.	self assert: flag team equals: #verde.	self assert: dora canMove.	! !!TestsEx4 methodsFor: 'testing' stamp: 'PLP 10/15/2017 01:20'!test4_3_targets"Cada personaje tiene su objetivo. El mensaje target debe devolver un bloque que,dado un objeto, indique si este es un objetivo para el personaje receptor."| terrain bob dora doc dean |	terrain := self class terrain.	dora := Explorer new: terrain with: (2@3) and: #verde.	dean := Explorer new: terrain with: (2@4) and: #rojo.	bob := Engineer new: terrain with: (2@1) and: #verde.	doc := Medic new: terrain with: (3@4) and: #verde.		dora disable.	dean disable.		self assert: (dora target value: Flag new).	self assert: (dora target value: Trap new) not.	self assert: (doc target value: dora).	self assert: (doc target value: bob) not.	self assert: (doc target value: dean) not.	self assert: (doc target value: Trap new) not.	self assert: (bob target value: Trap new).	self assert: (bob target value: Flag new) not.! !"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!TestsEx4 class	instanceVariableNames: ''!!TestsEx4 class methodsFor: 'initializing' stamp: 'PLP 10/13/2017 09:22'!terrain	| terrain |	terrain := Terrain dimX: 5 dimY: 4.	terrain at: (5@1) put: Flag new; at: (2@2) put: Flag new; at: (4@3) put: Flag new.	terrain at: (1@2) put: Trap new; at: (4@2) put: Trap new; at: (3@3) put: Trap new.	^terrain! !TestCase subclass: #TestsEx5	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!TestsEx5 methodsFor: 'testing' stamp: 'PLP 10/15/2017 05:31'!test5_2_registerTeam	| game trapLocations flagLocations playerLocations|	flagLocations := OrderedCollection with: (5@1) with: (2@2) with: (4@3).	trapLocations := OrderedCollection with: (1@2) with: (4@2) with: (3@3).		game := Game newX: 5 Y: 4 trapLocations: trapLocations flagLocations: flagLocations.	playerLocations := {(2@3). Explorer. (3@4). Medic}.		game registerTeam: #verde playerLocations: playerLocations.	self assert: game currentTeam members size equals: 2.	self assert: game currentTeam name equals: #verde.	self assert: (game currentTeam members first isKindOf: Explorer).	self assert: ((game currentTeam members at: 2) isKindOf: Medic).	self assert: (game currentTeam members at: 2) team equals: (game currentTeam name).! !!TestsEx5 methodsFor: 'testing' stamp: 'PLP 10/15/2017 09:50'!test5_3_game	"Ya se puede empezar a jugar.	El mensaje moveCharacter:to:steps: mueve el iésimo personaje del equipo actual una cierta cantidad 	de pasos en la dirección indicada."	| game trapLocations flagLocations |	flagLocations := OrderedCollection with: (5@1) with: (2@2) with: (4@3).	trapLocations := OrderedCollection with: (1@2) with: (4@2) with: (3@3).		game := Game newX: 5 Y: 4 trapLocations: trapLocations flagLocations: flagLocations.	game registerTeam: #verde playerLocations: {(2@3) . Explorer . (3@4) . Medic}.	game registerTeam: #rojo  playerLocations: {(2@4) . Explorer . (2@1) . Engineer}.	self assert: game currentTeam name equals: #verde.	game pass.	self assert: game currentTeam name equals: #rojo.	game pass.	self assert: game currentTeam name equals: #verde.	game moveCharacter: 1 to:  Direction east steps: 1.	self assert: game currentWinners isEmpty.	self assert: game currentTeam name equals: #rojo.	game moveCharacter: 1 to:  Direction south steps: 1.	self assert: (game currentWinners includes: #rojo).		self assert: game currentTeam name equals: #verde.	game moveCharacter: 2 to:  Direction east steps: 1.	self assert: (game currentWinners includes: #rojo).		self assert: game currentTeam name equals: #rojo.	game moveCharacter: 2 to:  Direction east steps: 3.	self assert: (game currentWinners includes: #rojo).		self assert: game currentTeam name equals: #verde.	game moveCharacter: 1 to:  Direction south steps: 1.	self assert: (game currentWinners includes: #rojo) not.	self assert: (game currentWinners includes: #verde).	self assert: game currentTeam name equals: #rojo.	game moveCharacter: 1 to:  Direction west steps: 1.	self assert: (game currentWinners includes: #rojo).	self assert: (game currentWinners includes: #verde).	! !!TestsEx5 methodsFor: 'testing' stamp: 'PLP 10/15/2017 05:30'!test5_1_gameTeam	| terrain dora doc greenTeam|	terrain := self class terrain.	dora := Explorer new: terrain with: 2@3 and: #verde.	doc := Medic new: terrain with: 3@4 and: #verde.		greenTeam := GameTeam new: #verde with: (OrderedCollection with: dora with: doc).	self assert: greenTeam members size equals: 2.	self assert: (greenTeam members includes: dora).	self assert: greenTeam name equals: #verde.! !"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!TestsEx5 class	instanceVariableNames: ''!!TestsEx5 class methodsFor: 'initializing' stamp: 'PLP 10/15/2017 02:32'!terrain	| terrain |	terrain := Terrain dimX: 5 dimY: 4.	terrain at: (5@1) put: Flag new; at: (2@2) put: Flag new; at: (4@3) put: Flag new.	terrain at: (1@2) put: Trap new; at: (4@2) put: Trap new; at: (3@3) put: Trap new.	^terrain! !MapObject subclass: #Trap	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!Trap commentStamp: 'EmanuelLamela 11/9/2017 16:03' prior: 0!I represent a Trap object that disables Game Characters that step over them!!Trap methodsFor: 'evaluation' stamp: 'JuanCruz 11/4/2017 12:36'!value	^nil.! !!Trap methodsFor: 'evaluation' stamp: 'JuanCruz 11/4/2017 16:44'!getVisibleObject	^nil.! !!Trap methodsFor: 'evaluation' stamp: 'JuanCruz 11/4/2017 12:44'!isVisible	^false.! !Direction subclass: #West	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'PLP'!!West commentStamp: '<historical>' prior: 0!West!"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!West class	instanceVariableNames: ''!!West class methodsFor: 'evaluating' stamp: 'PLP 10/14/2017 23:34'!nextFrom: puntoDeOrigen	^(puntoDeOrigen x - 1)@(puntoDeOrigen y)! !
+﻿Object subclass: #Direction
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!Direction commentStamp: '<historical>' prior: 0!
+Direction!
+
+
+!Direction methodsFor: 'evaluating' stamp: 'PLP 10/9/2017 17:52'!
+nextFrom: puntoDeOrigen
+"Dado un punto, devuelve el resultado de moverse en la direccion correspondiente. "
+^self class nextFrom: puntoDeOrigen ! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+Direction class
+	instanceVariableNames: ''!
+
+!Direction class methodsFor: 'evaluating' stamp: 'PLP 10/9/2017 17:54'!
+nextFrom: puntoDeOrigen
+	^ self subclassResponsibility ! !
+
+
+!Direction class methodsFor: 'instance-creation' stamp: 'PLP 10/9/2017 17:59'!
+southwest
+	^Southwest new! !
+
+!Direction class methodsFor: 'instance-creation' stamp: 'PLP 10/9/2017 17:53'!
+north
+	^North new! !
+
+!Direction class methodsFor: 'instance-creation' stamp: 'PLP 10/9/2017 17:52'!
+south
+	^South new! !
+
+!Direction class methodsFor: 'instance-creation' stamp: 'PLP 10/9/2017 17:59'!
+northeast
+	^Northeast new! !
+
+!Direction class methodsFor: 'instance-creation' stamp: 'PLP 10/9/2017 17:53'!
+east
+	^East new! !
+
+!Direction class methodsFor: 'instance-creation' stamp: 'PLP 10/9/2017 17:53'!
+west
+	^West new! !
+
+!Direction class methodsFor: 'instance-creation' stamp: 'PLP 10/9/2017 17:59'!
+northwest
+	^Northwest new! !
+
+!Direction class methodsFor: 'instance-creation' stamp: 'PLP 10/9/2017 17:59'!
+southeast
+	^Southeast new! !
+
+
+Direction subclass: #East
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!East commentStamp: '<historical>' prior: 0!
+East!
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+East class
+	instanceVariableNames: ''!
+
+!East class methodsFor: 'evaluating' stamp: 'PLP 10/14/2017 23:32'!
+nextFrom: puntoDeOrigen
+
+	^(puntoDeOrigen x + 1)@(puntoDeOrigen y)! !
+
+
+Object subclass: #Game
+	instanceVariableNames: 'terrain gameTeams currentTeamIndex'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!Game commentStamp: 'EmanuelLamela 11/9/2017 15:43' prior: 0!
+I represent the state of a Game!
+
+
+!Game methodsFor: 'handling' stamp: 'EmanuelLamela 11/27/2017 23:24'!
+pass
+	"Pass the turn to the next team"
+	currentTeamIndex := currentTeamIndex \\ (gameTeams size) + 1! !
+
+
+!Game methodsFor: 'private ' stamp: 'EmanuelLamela 11/27/2017 23:07'!
+initializeWithTerrain: aTerrain
+	currentTeamIndex := 0.
+	terrain := aTerrain.! !
+
+
+!Game methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/8/2017 01:23'!
+currentTeam
+	^gameTeams at: currentTeamIndex! !
+
+!Game methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/8/2017 03:14'!
+moveCharacter: anInteger to: aDirection steps: anInteger2
+	| gameCharacter |
+	gameCharacter := self currentTeam members at: anInteger.
+	gameCharacter move: anInteger2 to: aDirection.
+	self pass! !
+
+!Game methodsFor: 'as yet unclassified' stamp: 'EmanuelLamela 11/29/2017 14:20'!
+registerTeam: aTeam playerLocations: locationToCharacterPairs
+	"Register a team to participate in the game"
+	| characters |
+	characters := locationToCharacterPairs pairsCollect: [
+		:location :characterClass | characterClass value new: terrain with: location and: aTeam
+	].
+	gameTeams ifNil: [ gameTeams := OrderedCollection new. currentTeamIndex := 1 ].
+	gameTeams add: (GameTeam new: aTeam with: characters).! !
+
+!Game methodsFor: 'as yet unclassified' stamp: 'EmanuelLamela 11/27/2017 22:57'!
+currentWinners
+	| teamsPoints winnersTeams winnersScore |
+	teamsPoints := gameTeams
+		groupedBy: [ :gameTeam | (terrain selectFlagsByTeam: gameTeam) size ].
+	winnersTeams := OrderedCollection new.
+	winnersScore := teamsPoints keys max.
+	winnersScore > 0
+		ifTrue: [ winnersTeams := teamsPoints at: winnersScore ].
+	^ winnersTeams collect: [ :winnerTeam | winnerTeam name ]! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+Game class
+	instanceVariableNames: 'currentTeamIndex gameTeams terrain'!
+
+!Game class methodsFor: 'initialization' stamp: 'EmanuelLamela 11/27/2017 23:08'!
+newX: anInteger Y: anInteger2 trapLocations: tCollection flagLocations: fCollection
+	| aTerrain |
+	aTerrain := Terrain dimX: anInteger dimY: anInteger2.
+	tCollection do: [:trapLocation|aTerrain at: trapLocation put: Trap new].
+	fCollection do: [:flagLocation|aTerrain at: flagLocation put: Flag new].
+	^ self new initializeWithTerrain: aTerrain.! !
+
+
+Object subclass: #GameCharacter
+	instanceVariableNames: 'terrain team canMove location'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!GameCharacter commentStamp: 'EmanuelLamela 11/9/2017 15:54' prior: 0!
+I represent an abstract Game Character and its possible actions
+
+Each type of character can perform certain actions when interacting with other entities!
+
+
+!GameCharacter methodsFor: 'protocol' stamp: 'EmanuelLamela 11/29/2017 00:10'!
+renable
+	"Allows the character to perform its designated actions"
+	canMove := true.! !
+
+!GameCharacter methodsFor: 'protocol' stamp: 'EmanuelLamela 11/29/2017 00:10'!
+disable
+	"Prevents character for performing any actions"
+	canMove := false.! !
+
+
+!GameCharacter methodsFor: 'initialization' stamp: 'EmanuelLamela 11/29/2017 00:19'!
+initializeWithTeam: aTeamName andTerrain: aTerrain andLocation: aPointInTerrain
+	team := aTeamName.
+	location := aPointInTerrain.
+	terrain := (aTerrain at: aPointInTerrain put: self).
+	canMove := true.
+	! !
+
+
+
+!GameCharacter methodsFor: 'accessing' stamp: 'EmanuelLamela 11/27/2017 23:28'!
+isObjective: aMapObject
+	self subclassResponsibility! !
+
+!GameCharacter methodsFor: 'accessing' stamp: 'JuanCruz 11/4/2017 16:54'!
+team
+	^team! !
+
+!GameCharacter methodsFor: 'accessing' stamp: 'EmanuelLamela 11/27/2017 23:28'!
+action
+	self subclassResponsibility! !
+
+
+!GameCharacter methodsFor: 'path commands' stamp: 'EmanuelLamela 11/9/2017 15:50'!
+moveTo: aDirection
+"Moves the character 1 position towards aDirection if the terrain allows it"
+| content |
+(self canMoveTo: aDirection) ifFalse: [ ^self].
+terrain remove: self.
+location := aDirection nextFrom: location.
+content := terrain at: location.
+terrain at: location put: self.
+content ifNil: [self interactWithAllElements] ifNotNil: [ self disable ].
+^self! !
+
+
+!GameCharacter methodsFor: 'movement' stamp: 'EmanuelLamela 11/29/2017 00:07'!
+canMove
+	^ canMove.! !
+
+!GameCharacter methodsFor: 'movement' stamp: 'EmanuelLamela 11/28/2017 00:21'!
+canMoveTo: aDirection 
+	| movingPosition |
+	movingPosition := terrain getPositionFrom: self movingTo: aDirection.
+	^ canMove and: ((terrain contains: movingPosition) and: [ | objectAtMovingPosition | objectAtMovingPosition := (terrain at: movingPosition). objectAtMovingPosition isNil or: [objectAtMovingPosition isVisible not] ] )! !
+
+
+!GameCharacter methodsFor: 'as yet unclassified' stamp: 'EmanuelLamela 11/29/2017 00:54'!
+healedBy: aGameCharacter
+	aGameCharacter heal: self! !
+
+!GameCharacter methodsFor: 'as yet unclassified' stamp: 'EmanuelLamela 11/27/2017 23:38'!
+selectSeenFrom: aCollection
+	^ aCollection select: [:aMapObject | (aMapObject isVisible)]! !
+
+!GameCharacter methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/7/2017 20:23'!
+location
+	^ location! !
+
+!GameCharacter methodsFor: 'as yet unclassified' stamp: 'EmanuelLamela 11/9/2017 15:51'!
+move: anInteger to: aDirection
+	"Moves the character in aDirection a number of times as long as terrain allows it"
+	anInteger timesRepeat: [ self moveTo: aDirection ]! !
+
+!GameCharacter methodsFor: 'as yet unclassified' stamp: 'EmanuelLamela 11/27/2017 23:26'!
+interactWithAllElements
+	(terrain elementsAround: self satisfying: self target) collect: self action! !
+
+
+!GameCharacter methodsFor: 'testing' stamp: 'JuanCruz 11/7/2017 19:03'!
+target
+	^[:object | self isObjective: object]! !
+
+!GameCharacter methodsFor: 'testing' stamp: 'EmanuelLamela 11/29/2017 00:06'!
+canHeal
+	self subclassResponsibility.! !
+
+!GameCharacter methodsFor: 'testing' stamp: 'JuanCruz 11/4/2017 19:31'!
+isVisible
+	^true! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+GameCharacter class
+	instanceVariableNames: 'canMove'!
+
+!GameCharacter class methodsFor: 'creation' stamp: 'EmanuelLamela 11/29/2017 00:23'!
+new: aTerrain with: aPoint and: aTeamName
+	^ self new initializeWithTeam: aTeamName andTerrain: aTerrain andLocation: aPoint.! !
+
+
+GameCharacter subclass: #Engineer
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!Engineer commentStamp: 'EmanuelLamela 11/9/2017 15:52' prior: 0!
+I represent an Engineer character which can remove traps!
+
+
+!Engineer methodsFor: 'as yet unclassified' stamp: 'EmanuelLamela 11/27/2017 23:40'!
+selectSeenFrom: aCollection
+	^ aCollection! !
+
+!Engineer methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/7/2017 19:54'!
+action
+	^[:aTrap | terrain remove: aTrap ]! !
+
+
+!Engineer methodsFor: 'testing' stamp: 'JuanCruz 11/7/2017 19:52'!
+isObjective: aMapObject
+	^aMapObject isKindOf: Trap! !
+
+
+!Engineer methodsFor: 'accessing' stamp: 'EmanuelLamela 11/29/2017 00:07'!
+canHeal
+	^ false! !
+
+
+
+
+GameCharacter subclass: #Explorer
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!Explorer commentStamp: 'EmanuelLamela 11/9/2017 15:53' prior: 0!
+I represent an Explorer character which can claim a Flag!
+
+
+
+!Explorer methodsFor: 'accessing' stamp: 'EmanuelLamela 11/29/2017 00:07'!
+canHeal
+	^ false! !
+
+
+!Explorer methodsFor: 'testing' stamp: 'JuanCruz 11/7/2017 19:52'!
+isObjective: aMapObject
+	^aMapObject isKindOf: Flag! !
+
+
+
+!Explorer methodsFor: 'as yet unclassified' stamp: 'JuanCruz 11/7/2017 19:57'!
+action
+	^[:aFlag | aFlag team: self team] ! !
+
+
+Object subclass: #GameTeam
+	instanceVariableNames: 'team members'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!GameTeam commentStamp: 'EmanuelLamela 11/9/2017 15:57' prior: 0!
+I represent a team that can participate in a Game
+
+The Game Team is identified through a name!
+
+
+!GameTeam methodsFor: 'accessing' stamp: 'EmanuelLamela 11/29/2017 00:56'!
+team
+	^ team! !
+
+!GameTeam methodsFor: 'accessing' stamp: 'EmanuelLamela 11/29/2017 00:58'!
+name
+	^ team! !
+
+!GameTeam methodsFor: 'accessing' stamp: 'JuanCruz 11/7/2017 20:40'!
+members
+	^ members! !
+
+
+!GameTeam methodsFor: 'initialization' stamp: 'EmanuelLamela 11/29/2017 00:43'!
+initializeWithTeam: aTeamName andMembers: teamMembersCollection
+	team := aTeamName.
+	members := teamMembersCollection.! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+GameTeam class
+	instanceVariableNames: ''!
+
+!GameTeam class methodsFor: 'initialization' stamp: 'EmanuelLamela 11/29/2017 00:44'!
+new: aTeamName with: members
+	^ self new initializeWithTeam: aTeamName andMembers: members! !
+
+
+PackageManifest subclass: #ManifestPLP
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!ManifestPLP commentStamp: '<historical>' prior: 0!
+I store metadata for this package. These meta data are used by other tools such as the SmalllintManifestChecker and the critics Browser!
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+ManifestPLP class
+	instanceVariableNames: ''!
+
+!ManifestPLP class methodsFor: 'meta-data' stamp: 'EmanuelLamela 11/9/2017 15:51'!
+description ^ 'I represent an Engineer character which can remove traps'! !
+
+
+Object subclass: #MapObject
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!MapObject commentStamp: 'EmanuelLamela 11/9/2017 16:01' prior: 0!
+I represent an abstract item which can be placed on a Game map
+
+Different Map Objects can hold a visible object or none!
+
+
+!MapObject methodsFor: 'evaluation' stamp: 'EmanuelLamela 11/29/2017 00:45'!
+isVisible 
+	"Describes whether it's visible"
+	self subclassResponsibility ! !
+
+!MapObject methodsFor: 'evaluation' stamp: 'EmanuelLamela 11/29/2017 00:45'!
+value
+	self subclassResponsibility! !
+
+!MapObject methodsFor: 'evaluation' stamp: 'EmanuelLamela 11/29/2017 00:45'!
+getVisibleObject
+	self subclassResponsibility! !
+
+
+MapObject subclass: #Flag
+	instanceVariableNames: 'team'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!Flag commentStamp: 'EmanuelLamela 11/9/2017 16:02' prior: 0!
+I represent a Flag object that can be claimed by 1 Game Team at a time!
+
+
+!Flag methodsFor: 'evaluation' stamp: 'JuanCruz 11/4/2017 12:46'!
+team: aString
+	team := aString.! !
+
+!Flag methodsFor: 'evaluation' stamp: 'EmanuelLamela 11/29/2017 00:46'!
+getVisibleObject
+	^ self.! !
+
+!Flag methodsFor: 'evaluation' stamp: 'JuanCruz 11/4/2017 12:47'!
+team
+	^ team! !
+
+!Flag methodsFor: 'evaluation' stamp: 'EmanuelLamela 11/29/2017 00:47'!
+isVisible
+	^ true.! !
+
+!Flag methodsFor: 'evaluation' stamp: 'EmanuelLamela 11/29/2017 00:47'!
+value
+	^ self getVisibleObject.! !
+
+
+GameCharacter subclass: #Medic
+	instanceVariableNames: 'canPerformHeal'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!Medic commentStamp: 'EmanuelLamela 11/9/2017 15:55' prior: 0!
+I represent a Medic character which can heal other Game Characters!
+
+
+!Medic methodsFor: 'protocol' stamp: 'EmanuelLamela 11/29/2017 00:30'!
+renable
+	canPerformHeal := true.
+	super renable.! !
+
+!Medic methodsFor: 'protocol' stamp: 'EmanuelLamela 11/29/2017 00:30'!
+disable
+	canPerformHeal := false.
+	super disable.! !
+
+
+!Medic methodsFor: 'testing' stamp: 'JuanCruz 11/7/2017 19:24'!
+isObjective: aMapObject
+	^(aMapObject isKindOf: GameCharacter) and: ([(aMapObject canMove) not and: (self team = aMapObject team)])! !
+
+
+!Medic methodsFor: 'initialization' stamp: 'EmanuelLamela 11/29/2017 00:36'!
+initializeWithTeam: aTeamName andTerrain: aTerrain andLocation: aPointInTerrain
+	canPerformHeal := true.
+	super initializeWithTeam: aTeamName andTerrain: aTerrain andLocation: aPointInTerrain.! !
+
+
+!Medic methodsFor: 'action' stamp: 'EmanuelLamela 11/29/2017 00:51'!
+heal: aGameCharacter
+	self assert: self canHeal.
+	aGameCharacter renable.! !
+
+
+!Medic methodsFor: 'accessing' stamp: 'EmanuelLamela 11/29/2017 00:56'!
+action
+	^ [:aTeammate | self heal: aTeammate].! !
+
+!Medic methodsFor: 'accessing' stamp: 'EmanuelLamela 11/29/2017 00:28'!
+canHeal
+	^ canPerformHeal! !
+
+
+Direction subclass: #North
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!North commentStamp: '<historical>' prior: 0!
+North!
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+North class
+	instanceVariableNames: ''!
+
+!North class methodsFor: 'evaluating' stamp: 'PLP 10/14/2017 23:33'!
+nextFrom: puntoDeOrigen
+
+	^(puntoDeOrigen x)@(puntoDeOrigen y + 1)! !
+
+
+Direction subclass: #Northeast
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!Northeast commentStamp: '<historical>' prior: 0!
+Northeast!
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+Northeast class
+	instanceVariableNames: ''!
+
+!Northeast class methodsFor: 'evaluating' stamp: 'PLP 10/9/2017 17:57'!
+nextFrom: puntoDeOrigen
+
+	^(puntoDeOrigen x + 1)@(puntoDeOrigen y + 1)! !
+
+
+Direction subclass: #Northwest
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!Northwest commentStamp: '<historical>' prior: 0!
+Northwest!
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+Northwest class
+	instanceVariableNames: ''!
+
+!Northwest class methodsFor: 'evaluating' stamp: 'PLP 10/9/2017 17:57'!
+nextFrom: puntoDeOrigen
+
+	^(puntoDeOrigen x - 1)@(puntoDeOrigen y + 1)! !
+
+
+Direction subclass: #South
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!South commentStamp: '<historical>' prior: 0!
+South!
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+South class
+	instanceVariableNames: ''!
+
+!South class methodsFor: 'evaluating' stamp: 'PLP 10/14/2017 23:33'!
+nextFrom: puntoDeOrigen
+
+	^(puntoDeOrigen x)@(puntoDeOrigen y - 1)! !
+
+
+Direction subclass: #Southeast
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!Southeast commentStamp: '<historical>' prior: 0!
+Southeast!
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+Southeast class
+	instanceVariableNames: ''!
+
+!Southeast class methodsFor: 'evaluating' stamp: 'PLP 10/9/2017 17:58'!
+nextFrom: puntoDeOrigen
+
+	^(puntoDeOrigen x + 1)@(puntoDeOrigen y - 1)! !
+
+
+Direction subclass: #Southwest
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!Southwest commentStamp: '<historical>' prior: 0!
+Southwest!
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+Southwest class
+	instanceVariableNames: ''!
+
+!Southwest class methodsFor: 'evaluating' stamp: 'PLP 10/9/2017 17:58'!
+nextFrom: puntoDeOrigen
+
+	^(puntoDeOrigen x - 1)@(puntoDeOrigen y - 1)! !
+
+
+Object subclass: #Terrain
+	instanceVariableNames: 'dimX dimY mapObjects'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!Terrain commentStamp: 'EmanuelLamela 11/9/2017 16:05' prior: 0!
+I represent the terrain of the Game which delimits the playable area and over which different Map Objects can be placed!
+
+
+!Terrain methodsFor: 'accessing' stamp: 'EmanuelLamela 11/9/2017 15:23'!
+getPositionFrom: aObject
+	^mapObjects keyAtValue: aObject ifAbsent: nil.! !
+
+!Terrain methodsFor: 'accessing' stamp: 'JuanCruz 11/4/2017 14:30'!
+getDimX
+	^dimX! !
+
+!Terrain methodsFor: 'accessing' stamp: 'EmanuelLamela 11/9/2017 16:08'!
+elementsAround: aGameCharacter
+	"Visible objects in the adyacents positions to aGameCharacter"
+	| neighborsPositions neighborsObjects |
+	neighborsPositions := (self getPositionFrom: aGameCharacter)
+		eightNeighbors.
+	neighborsObjects := neighborsPositions
+		collect: [ :neighborPosition | self at: neighborPosition ].
+	^ aGameCharacter
+		selectSeenFrom: (neighborsObjects reject: [ :neighborObject | neighborObject isNil ])! !
+
+!Terrain methodsFor: 'accessing' stamp: 'JuanCruz 11/7/2017 20:23'!
+getPositionFrom: aObject movingTo: aDirection
+	| aPosition |
+	aPosition := self getPositionFrom: aObject .
+	^ aDirection nextFrom: aPosition.! !
+
+!Terrain methodsFor: 'accessing' stamp: 'JuanCruz 11/4/2017 14:30'!
+getDimY
+	^dimY! !
+
+!Terrain methodsFor: 'accessing' stamp: 'EmanuelLamela 11/9/2017 16:09'!
+elementsAround: aGameCharacter satisfying: aBlock
+	"Visible objects in the adyacents positions to aGameCharacter that satisfy a condition"
+	^(self elementsAround: aGameCharacter) select: aBlock.! !
+
+!Terrain methodsFor: 'accessing' stamp: 'EmanuelLamela 11/27/2017 23:56'!
+at: aPoint
+	^ mapObjects at: aPoint ifAbsent: nil! !
+
+
+!Terrain methodsFor: 'comparing' stamp: 'EmanuelLamela 11/9/2017 16:06'!
+contains: aPoint 
+	"Whether the values of aPoint fit in the dimensions of the terrain"
+	^aPoint <= ((self getDimX)@(self getDimY)) and:[aPoint > (0@0)].! !
+
+
+!Terrain methodsFor: 'inserting' stamp: 'EmanuelLamela 11/29/2017 00:21'!
+at: aPoint put: aMapObject
+	"Puts a MapObject in aPoint if the said point is contained in the terrain"
+	self assert: (self contains: aPoint).
+	mapObjects at: aPoint put: aMapObject.! !
+
+
+!Terrain methodsFor: 'removing' stamp: 'EmanuelLamela 11/9/2017 16:11'!
+remove: aMapObject
+	"Removes aMapObject if present in the terrain"
+ 	mapObjects removeKey: ( self getPositionFrom: aMapObject ) ifAbsent: nil! !
+
+
+!Terrain methodsFor: 'setting' stamp: 'EmanuelLamela 11/29/2017 01:07'!
+initialize: dimensionX and: dimensionY
+	mapObjects := Dictionary new.
+	dimX := dimensionX.
+	dimY := dimensionY.! !
+
+
+!Terrain methodsFor: 'viewing' stamp: 'EmanuelLamela 11/9/2017 16:12'!
+visibleAt: aPoint
+	"Returns the visible object on the map if any is present, else nil"
+	| aMapObject |
+	aMapObject := mapObjects at: aPoint ifAbsent: nil.
+	^aMapObject ifNil: nil ifNotNil: [aMapObject getVisibleObject]! !
+
+
+!Terrain methodsFor: 'enumerating' stamp: 'EmanuelLamela 11/27/2017 22:54'!
+select: aBlock
+	^ mapObjects select: aBlock ! !
+
+!Terrain methodsFor: 'enumerating' stamp: 'EmanuelLamela 11/27/2017 22:55'!
+selectFlagsByTeam: aGameTeam
+	^ self select: [ :mapObject | (mapObject isKindOf: Flag) and: [ mapObject team = aGameTeam name ] ]
+		! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+Terrain class
+	instanceVariableNames: 'dimX dimY'!
+
+!Terrain class methodsFor: 'creation' stamp: 'EmanuelLamela 11/29/2017 01:10'!
+dimX: aDimX dimY: aDimY
+	^ self new initialize: aDimX and: aDimY.! !
+
+MapObject subclass: #Trap
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!Trap commentStamp: 'EmanuelLamela 11/9/2017 16:03' prior: 0!
+I represent a Trap object that disables Game Characters that step over them!
+
+
+!Trap methodsFor: 'evaluation' stamp: 'JuanCruz 11/4/2017 12:44'!
+isVisible
+	^false.! !
+
+!Trap methodsFor: 'evaluation' stamp: 'JuanCruz 11/4/2017 12:36'!
+value
+	^nil.! !
+
+!Trap methodsFor: 'evaluation' stamp: 'JuanCruz 11/4/2017 16:44'!
+getVisibleObject
+	^nil.! !
+
+
+Direction subclass: #West
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP'!
+!West commentStamp: '<historical>' prior: 0!
+West!
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+West class
+	instanceVariableNames: ''!
+
+!West class methodsFor: 'evaluating' stamp: 'PLP 10/14/2017 23:34'!
+nextFrom: puntoDeOrigen
+
+	^(puntoDeOrigen x - 1)@(puntoDeOrigen y)! !
